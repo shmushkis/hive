@@ -6,7 +6,7 @@ STORED BY
 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
                 "hive.sql.jdbc.driver" = "com.jethrodata.JethroDriver",
-                "hive.sql.jdbc.url" = "jdbc:JethroData://54.244.17.18:9111/sanity_tpcds",
+                "hive.sql.jdbc.url" = "jdbc:JethroData://54.218.71.97:9111/sanity_tpcds",
                 "hive.sql.dbcp.username" = "jethro",
                 "hive.sql.dbcp.password" = "jethro", 
                 "hive.sql.query" = "select * from MyTable",
