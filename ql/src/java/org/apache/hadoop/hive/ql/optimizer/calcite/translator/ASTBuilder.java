@@ -73,7 +73,7 @@ public class ASTBuilder {
             .add(HiveParser.Identifier, hTbl.getHiveTableMD().getTableName()));
 
     ASTBuilder propList = ASTBuilder.construct(HiveParser.TOK_TABLEPROPLIST, "TOK_TABLEPROPLIST");
-    if (scan instanceof DruidQuery) {
+    if (scan instanceof DruidQuery) {// TODOY 34:00
       // Pass possible query to Druid
       DruidQuery dq = (DruidQuery) scan;
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
@@ -83,7 +83,12 @@ public class ASTBuilder {
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_TYPE + "\"")
               .add(HiveParser.StringLiteral, "\"" + dq.getQueryType().getQueryName() + "\""));
-    }
+    } /*else if (scan instanceof JdbcQuery) {// TODOY 35:30
+      propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
+          .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_JSON + "\"")
+          .add(HiveParser.StringLiteral,
+              "\"" + SemanticAnalyzer.escapeSQLString(dq.getQueryString()) + "\""));
+    }*/
     if (hts.isInsideView()) {
       // We need to carry the insideView information from calcite into the ast.
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")

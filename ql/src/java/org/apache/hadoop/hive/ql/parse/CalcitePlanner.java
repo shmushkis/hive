@@ -53,6 +53,7 @@ import org.apache.calcite.adapter.druid.DruidRules;
 import org.apache.calcite.adapter.druid.DruidSchema;
 import org.apache.calcite.adapter.druid.DruidTable;
 import org.apache.calcite.adapter.druid.LocalInterval;
+import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -257,6 +258,8 @@ import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 
+import com.esotericsoftware.minlog.Log;
+import com.esotericsoftware.minlog.Log.Logger;
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -2380,6 +2383,12 @@ public class CalcitePlanner extends SemanticAnalyzer {
                       || qb.getAliasInsideView().contains(tableAlias.toLowerCase()));
           tableRel = DruidQuery.create(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION),
               optTable, druidTable, ImmutableList.<RelNode>of(scan));
+        } else if (false && tableType == TableType.JDBC) {
+          LOG.debug("JDBC is running");
+          // org.apache.calcite.adapter.jdbc.JDBCTable tbl = new
+          // org.apache.calcite.adapter.jdbc.JDBCTable ();
+          // Build Hive Table Scan Rel
+          // tableRel = new JdbcTableScan(cluster,);
         } else {
           // Build row type from field <type, name>
           RelDataType rowType = TypeConverter.getType(cluster, rr, null);
@@ -2419,11 +2428,20 @@ public class CalcitePlanner extends SemanticAnalyzer {
     }
 
     private TableType obtainTableType(Table tabMetaData) {
-      if (tabMetaData.getStorageHandler() != null &&
-              tabMetaData.getStorageHandler().toString().equals(
-                      Constants.DRUID_HIVE_STORAGE_HANDLER_ID)) {
-        return TableType.DRUID;
+      if (tabMetaData.getStorageHandler() != null) {
+        final String storageHandlerStr = tabMetaData.getStorageHandler().toString();
+        if (storageHandlerStr
+            .equals(Constants.DRUID_HIVE_STORAGE_HANDLER_ID)) {
+          return TableType.DRUID;
+        }
+
+        if (storageHandlerStr
+            .equals(Constants.JDBC_HIVE_STORAGE_HANDLER_ID)) {
+          return TableType.JDBC;
+        }
+
       }
+
       return TableType.NATIVE;
     }
 
@@ -4373,6 +4391,7 @@ public class CalcitePlanner extends SemanticAnalyzer {
 
   private enum TableType {
     DRUID,
-    NATIVE
+    NATIVE,
+    JDBC
   }
 }

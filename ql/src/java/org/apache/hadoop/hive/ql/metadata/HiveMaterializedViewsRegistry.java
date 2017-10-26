@@ -290,7 +290,7 @@ public final class HiveMaterializedViewsRegistry {
     RelNode tableRel;
 
     // 3. Build operator
-    if (obtainTableType(viewTable) == TableType.DRUID) {
+    if (obtainTableType(viewTable) == TableType.DRUID) {// TODOY
       // Build Druid query
       String address = HiveConf.getVar(SessionState.get().getConf(),
           HiveConf.ConfVars.HIVE_DRUID_BROKER_DEFAULT_ADDRESS);
@@ -378,16 +378,24 @@ public final class HiveMaterializedViewsRegistry {
   }
 
   private static TableType obtainTableType(Table tabMetaData) {
-    if (tabMetaData.getStorageHandler() != null &&
-            tabMetaData.getStorageHandler().toString().equals(
-                    Constants.DRUID_HIVE_STORAGE_HANDLER_ID)) {
-      return TableType.DRUID;
+    if (tabMetaData.getStorageHandler() != null) {
+      final String storageHandlerStr = tabMetaData.getStorageHandler().toString();
+      if (storageHandlerStr.equals(Constants.DRUID_HIVE_STORAGE_HANDLER_ID)) {
+        return TableType.DRUID;
+      }
+
+      if (storageHandlerStr.equals(Constants.JDBC_HIVE_STORAGE_HANDLER_ID)) {
+        return TableType.JDBC;
+      }
+
     }
+ 
     return TableType.NATIVE;
   }
 
   private enum TableType {
     DRUID,
-    NATIVE
+    NATIVE,
+    JDBC
   }
 }
