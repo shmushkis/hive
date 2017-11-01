@@ -1,4 +1,6 @@
-add jar /home/msydoron/eclipse-workspace/JethroDataJDBCDriver/target/jethro-jdbc-2.2-standalone.jar;
+--add jar /home/msydoron/eclipse-workspace/JethroDataJDBCDriver/target/jethro-jdbc-2.2-standalone.jar;
+add jar /home/msydoron/jethro-jdbc-3.3-standalone.jar;
+        
 
 
 CREATE EXTERNAL TABLE mytable2 (x INT)
