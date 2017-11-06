@@ -80,7 +80,7 @@ import org.apache.hadoop.hive.ql.optimizer.SharedWorkOptimizer;
 import org.apache.hadoop.hive.ql.optimizer.correlation.ReduceSinkJoinDeDuplication;
 import org.apache.hadoop.hive.ql.optimizer.metainfo.annotation.AnnotateWithOpTraits;
 import org.apache.hadoop.hive.ql.optimizer.physical.AnnotateRunTimeStatsOptimizer;
-import org.apache.hadoop.hive.ql.optimizer.physical.CrossProductCheck;
+import org.apache.hadoop.hive.ql.optimizer.physical.CrossProductHandler;
 import org.apache.hadoop.hive.ql.optimizer.physical.LlapClusterStateForCompile;
 import org.apache.hadoop.hive.ql.optimizer.physical.LlapDecider;
 import org.apache.hadoop.hive.ql.optimizer.physical.LlapPreVectorizationPass;
@@ -658,7 +658,7 @@ public class TezCompiler extends TaskCompiler {
     }
 
     if (conf.getBoolVar(HiveConf.ConfVars.HIVE_CHECK_CROSS_PRODUCT)) {
-      physicalCtx = new CrossProductCheck().resolve(physicalCtx);
+      physicalCtx = new CrossProductHandler().resolve(physicalCtx);
     } else {
       LOG.debug("Skipping cross product analysis");
     }
@@ -1414,7 +1414,13 @@ public class TezCompiler extends TaskCompiler {
               ExprNodeColumnDesc tsColExpr = ExprNodeDescUtils.getColumnExpr(tsExpr);
               long nDVsOfTS = filStats.getColumnStatisticsFromColName(
                       tsColExpr.getColumn()).getCountDistint();
-              if (nDVsOfTS >= nDVs) {
+              double nDVsOfTSFactored = nDVsOfTS * procCtx.conf.getFloatVar(
+                      ConfVars.TEZ_DYNAMIC_SEMIJOIN_REDUCTION_FOR_DPP_FACTOR);
+              if ((long)nDVsOfTSFactored > nDVs) {
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug("nDVs = " + nDVs + ", nDVsOfTS = " + nDVsOfTS + " and nDVsOfTSFactored = " + nDVsOfTSFactored
+                  + "Adding semijoin branch from ReduceSink " + rs + " to TS " + sjInfo.getTsOp());
+                }
                 sjInfo.setShouldRemove(false);
               }
             }

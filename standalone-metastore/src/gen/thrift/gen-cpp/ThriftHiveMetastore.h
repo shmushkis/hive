@@ -184,6 +184,16 @@ class ThriftHiveMetastoreIf : virtual public  ::facebook::fb303::FacebookService
   virtual void clear_file_metadata(ClearFileMetadataResult& _return, const ClearFileMetadataRequest& req) = 0;
   virtual void cache_file_metadata(CacheFileMetadataResult& _return, const CacheFileMetadataRequest& req) = 0;
   virtual void get_metastore_db_uuid(std::string& _return) = 0;
+  virtual void create_resource_plan(WMCreateResourcePlanResponse& _return, const WMCreateResourcePlanRequest& request) = 0;
+  virtual void get_resource_plan(WMGetResourcePlanResponse& _return, const WMGetResourcePlanRequest& request) = 0;
+  virtual void get_all_resource_plans(WMGetAllResourcePlanResponse& _return, const WMGetAllResourcePlanRequest& request) = 0;
+  virtual void alter_resource_plan(WMAlterResourcePlanResponse& _return, const WMAlterResourcePlanRequest& request) = 0;
+  virtual void validate_resource_plan(WMValidateResourcePlanResponse& _return, const WMValidateResourcePlanRequest& request) = 0;
+  virtual void drop_resource_plan(WMDropResourcePlanResponse& _return, const WMDropResourcePlanRequest& request) = 0;
+  virtual void create_wm_trigger(WMCreateTriggerResponse& _return, const WMCreateTriggerRequest& request) = 0;
+  virtual void alter_wm_trigger(WMAlterTriggerResponse& _return, const WMAlterTriggerRequest& request) = 0;
+  virtual void drop_wm_trigger(WMDropTriggerResponse& _return, const WMDropTriggerRequest& request) = 0;
+  virtual void get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return, const WMGetTriggersForResourePlanRequest& request) = 0;
 };
 
 class ThriftHiveMetastoreIfFactory : virtual public  ::facebook::fb303::FacebookServiceIfFactory {
@@ -725,6 +735,36 @@ class ThriftHiveMetastoreNull : virtual public ThriftHiveMetastoreIf , virtual p
     return;
   }
   void get_metastore_db_uuid(std::string& /* _return */) {
+    return;
+  }
+  void create_resource_plan(WMCreateResourcePlanResponse& /* _return */, const WMCreateResourcePlanRequest& /* request */) {
+    return;
+  }
+  void get_resource_plan(WMGetResourcePlanResponse& /* _return */, const WMGetResourcePlanRequest& /* request */) {
+    return;
+  }
+  void get_all_resource_plans(WMGetAllResourcePlanResponse& /* _return */, const WMGetAllResourcePlanRequest& /* request */) {
+    return;
+  }
+  void alter_resource_plan(WMAlterResourcePlanResponse& /* _return */, const WMAlterResourcePlanRequest& /* request */) {
+    return;
+  }
+  void validate_resource_plan(WMValidateResourcePlanResponse& /* _return */, const WMValidateResourcePlanRequest& /* request */) {
+    return;
+  }
+  void drop_resource_plan(WMDropResourcePlanResponse& /* _return */, const WMDropResourcePlanRequest& /* request */) {
+    return;
+  }
+  void create_wm_trigger(WMCreateTriggerResponse& /* _return */, const WMCreateTriggerRequest& /* request */) {
+    return;
+  }
+  void alter_wm_trigger(WMAlterTriggerResponse& /* _return */, const WMAlterTriggerRequest& /* request */) {
+    return;
+  }
+  void drop_wm_trigger(WMDropTriggerResponse& /* _return */, const WMDropTriggerRequest& /* request */) {
+    return;
+  }
+  void get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& /* _return */, const WMGetTriggersForResourePlanRequest& /* request */) {
     return;
   }
 };
@@ -20677,6 +20717,1254 @@ class ThriftHiveMetastore_get_metastore_db_uuid_presult {
 
 };
 
+typedef struct _ThriftHiveMetastore_create_resource_plan_args__isset {
+  _ThriftHiveMetastore_create_resource_plan_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_create_resource_plan_args__isset;
+
+class ThriftHiveMetastore_create_resource_plan_args {
+ public:
+
+  ThriftHiveMetastore_create_resource_plan_args(const ThriftHiveMetastore_create_resource_plan_args&);
+  ThriftHiveMetastore_create_resource_plan_args& operator=(const ThriftHiveMetastore_create_resource_plan_args&);
+  ThriftHiveMetastore_create_resource_plan_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_resource_plan_args() throw();
+  WMCreateResourcePlanRequest request;
+
+  _ThriftHiveMetastore_create_resource_plan_args__isset __isset;
+
+  void __set_request(const WMCreateResourcePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_create_resource_plan_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_resource_plan_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_resource_plan_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_create_resource_plan_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_resource_plan_pargs() throw();
+  const WMCreateResourcePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_resource_plan_result__isset {
+  _ThriftHiveMetastore_create_resource_plan_result__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_create_resource_plan_result__isset;
+
+class ThriftHiveMetastore_create_resource_plan_result {
+ public:
+
+  ThriftHiveMetastore_create_resource_plan_result(const ThriftHiveMetastore_create_resource_plan_result&);
+  ThriftHiveMetastore_create_resource_plan_result& operator=(const ThriftHiveMetastore_create_resource_plan_result&);
+  ThriftHiveMetastore_create_resource_plan_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_resource_plan_result() throw();
+  WMCreateResourcePlanResponse success;
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_create_resource_plan_result__isset __isset;
+
+  void __set_success(const WMCreateResourcePlanResponse& val);
+
+  void __set_o1(const AlreadyExistsException& val);
+
+  void __set_o2(const InvalidObjectException& val);
+
+  void __set_o3(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_create_resource_plan_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_resource_plan_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_resource_plan_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_resource_plan_presult__isset {
+  _ThriftHiveMetastore_create_resource_plan_presult__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_create_resource_plan_presult__isset;
+
+class ThriftHiveMetastore_create_resource_plan_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_resource_plan_presult() throw();
+  WMCreateResourcePlanResponse* success;
+  AlreadyExistsException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_create_resource_plan_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_get_resource_plan_args__isset {
+  _ThriftHiveMetastore_get_resource_plan_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_get_resource_plan_args__isset;
+
+class ThriftHiveMetastore_get_resource_plan_args {
+ public:
+
+  ThriftHiveMetastore_get_resource_plan_args(const ThriftHiveMetastore_get_resource_plan_args&);
+  ThriftHiveMetastore_get_resource_plan_args& operator=(const ThriftHiveMetastore_get_resource_plan_args&);
+  ThriftHiveMetastore_get_resource_plan_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_resource_plan_args() throw();
+  WMGetResourcePlanRequest request;
+
+  _ThriftHiveMetastore_get_resource_plan_args__isset __isset;
+
+  void __set_request(const WMGetResourcePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_get_resource_plan_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_resource_plan_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_resource_plan_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_resource_plan_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_resource_plan_pargs() throw();
+  const WMGetResourcePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_resource_plan_result__isset {
+  _ThriftHiveMetastore_get_resource_plan_result__isset() : success(false), o1(false), o2(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+} _ThriftHiveMetastore_get_resource_plan_result__isset;
+
+class ThriftHiveMetastore_get_resource_plan_result {
+ public:
+
+  ThriftHiveMetastore_get_resource_plan_result(const ThriftHiveMetastore_get_resource_plan_result&);
+  ThriftHiveMetastore_get_resource_plan_result& operator=(const ThriftHiveMetastore_get_resource_plan_result&);
+  ThriftHiveMetastore_get_resource_plan_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_resource_plan_result() throw();
+  WMGetResourcePlanResponse success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_resource_plan_result__isset __isset;
+
+  void __set_success(const WMGetResourcePlanResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_get_resource_plan_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_resource_plan_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_resource_plan_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_resource_plan_presult__isset {
+  _ThriftHiveMetastore_get_resource_plan_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+} _ThriftHiveMetastore_get_resource_plan_presult__isset;
+
+class ThriftHiveMetastore_get_resource_plan_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_resource_plan_presult() throw();
+  WMGetResourcePlanResponse* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_resource_plan_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_resource_plans_args__isset {
+  _ThriftHiveMetastore_get_all_resource_plans_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_get_all_resource_plans_args__isset;
+
+class ThriftHiveMetastore_get_all_resource_plans_args {
+ public:
+
+  ThriftHiveMetastore_get_all_resource_plans_args(const ThriftHiveMetastore_get_all_resource_plans_args&);
+  ThriftHiveMetastore_get_all_resource_plans_args& operator=(const ThriftHiveMetastore_get_all_resource_plans_args&);
+  ThriftHiveMetastore_get_all_resource_plans_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_resource_plans_args() throw();
+  WMGetAllResourcePlanRequest request;
+
+  _ThriftHiveMetastore_get_all_resource_plans_args__isset __isset;
+
+  void __set_request(const WMGetAllResourcePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_get_all_resource_plans_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_resource_plans_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_resource_plans_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_all_resource_plans_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_resource_plans_pargs() throw();
+  const WMGetAllResourcePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_resource_plans_result__isset {
+  _ThriftHiveMetastore_get_all_resource_plans_result__isset() : success(false), o1(false) {}
+  bool success :1;
+  bool o1 :1;
+} _ThriftHiveMetastore_get_all_resource_plans_result__isset;
+
+class ThriftHiveMetastore_get_all_resource_plans_result {
+ public:
+
+  ThriftHiveMetastore_get_all_resource_plans_result(const ThriftHiveMetastore_get_all_resource_plans_result&);
+  ThriftHiveMetastore_get_all_resource_plans_result& operator=(const ThriftHiveMetastore_get_all_resource_plans_result&);
+  ThriftHiveMetastore_get_all_resource_plans_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_all_resource_plans_result() throw();
+  WMGetAllResourcePlanResponse success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_resource_plans_result__isset __isset;
+
+  void __set_success(const WMGetAllResourcePlanResponse& val);
+
+  void __set_o1(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_get_all_resource_plans_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_all_resource_plans_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_all_resource_plans_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_all_resource_plans_presult__isset {
+  _ThriftHiveMetastore_get_all_resource_plans_presult__isset() : success(false), o1(false) {}
+  bool success :1;
+  bool o1 :1;
+} _ThriftHiveMetastore_get_all_resource_plans_presult__isset;
+
+class ThriftHiveMetastore_get_all_resource_plans_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_all_resource_plans_presult() throw();
+  WMGetAllResourcePlanResponse* success;
+  MetaException o1;
+
+  _ThriftHiveMetastore_get_all_resource_plans_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_resource_plan_args__isset {
+  _ThriftHiveMetastore_alter_resource_plan_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_alter_resource_plan_args__isset;
+
+class ThriftHiveMetastore_alter_resource_plan_args {
+ public:
+
+  ThriftHiveMetastore_alter_resource_plan_args(const ThriftHiveMetastore_alter_resource_plan_args&);
+  ThriftHiveMetastore_alter_resource_plan_args& operator=(const ThriftHiveMetastore_alter_resource_plan_args&);
+  ThriftHiveMetastore_alter_resource_plan_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_alter_resource_plan_args() throw();
+  WMAlterResourcePlanRequest request;
+
+  _ThriftHiveMetastore_alter_resource_plan_args__isset __isset;
+
+  void __set_request(const WMAlterResourcePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_alter_resource_plan_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_alter_resource_plan_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_alter_resource_plan_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_alter_resource_plan_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_alter_resource_plan_pargs() throw();
+  const WMAlterResourcePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_resource_plan_result__isset {
+  _ThriftHiveMetastore_alter_resource_plan_result__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_alter_resource_plan_result__isset;
+
+class ThriftHiveMetastore_alter_resource_plan_result {
+ public:
+
+  ThriftHiveMetastore_alter_resource_plan_result(const ThriftHiveMetastore_alter_resource_plan_result&);
+  ThriftHiveMetastore_alter_resource_plan_result& operator=(const ThriftHiveMetastore_alter_resource_plan_result&);
+  ThriftHiveMetastore_alter_resource_plan_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_alter_resource_plan_result() throw();
+  WMAlterResourcePlanResponse success;
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_alter_resource_plan_result__isset __isset;
+
+  void __set_success(const WMAlterResourcePlanResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const InvalidOperationException& val);
+
+  void __set_o3(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_alter_resource_plan_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_alter_resource_plan_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_alter_resource_plan_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_resource_plan_presult__isset {
+  _ThriftHiveMetastore_alter_resource_plan_presult__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_alter_resource_plan_presult__isset;
+
+class ThriftHiveMetastore_alter_resource_plan_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_alter_resource_plan_presult() throw();
+  WMAlterResourcePlanResponse* success;
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_alter_resource_plan_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_validate_resource_plan_args__isset {
+  _ThriftHiveMetastore_validate_resource_plan_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_validate_resource_plan_args__isset;
+
+class ThriftHiveMetastore_validate_resource_plan_args {
+ public:
+
+  ThriftHiveMetastore_validate_resource_plan_args(const ThriftHiveMetastore_validate_resource_plan_args&);
+  ThriftHiveMetastore_validate_resource_plan_args& operator=(const ThriftHiveMetastore_validate_resource_plan_args&);
+  ThriftHiveMetastore_validate_resource_plan_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_validate_resource_plan_args() throw();
+  WMValidateResourcePlanRequest request;
+
+  _ThriftHiveMetastore_validate_resource_plan_args__isset __isset;
+
+  void __set_request(const WMValidateResourcePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_validate_resource_plan_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_validate_resource_plan_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_validate_resource_plan_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_validate_resource_plan_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_validate_resource_plan_pargs() throw();
+  const WMValidateResourcePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_validate_resource_plan_result__isset {
+  _ThriftHiveMetastore_validate_resource_plan_result__isset() : success(false), o1(false), o2(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+} _ThriftHiveMetastore_validate_resource_plan_result__isset;
+
+class ThriftHiveMetastore_validate_resource_plan_result {
+ public:
+
+  ThriftHiveMetastore_validate_resource_plan_result(const ThriftHiveMetastore_validate_resource_plan_result&);
+  ThriftHiveMetastore_validate_resource_plan_result& operator=(const ThriftHiveMetastore_validate_resource_plan_result&);
+  ThriftHiveMetastore_validate_resource_plan_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_validate_resource_plan_result() throw();
+  WMValidateResourcePlanResponse success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_validate_resource_plan_result__isset __isset;
+
+  void __set_success(const WMValidateResourcePlanResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_validate_resource_plan_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_validate_resource_plan_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_validate_resource_plan_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_validate_resource_plan_presult__isset {
+  _ThriftHiveMetastore_validate_resource_plan_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+} _ThriftHiveMetastore_validate_resource_plan_presult__isset;
+
+class ThriftHiveMetastore_validate_resource_plan_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_validate_resource_plan_presult() throw();
+  WMValidateResourcePlanResponse* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_validate_resource_plan_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_resource_plan_args__isset {
+  _ThriftHiveMetastore_drop_resource_plan_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_drop_resource_plan_args__isset;
+
+class ThriftHiveMetastore_drop_resource_plan_args {
+ public:
+
+  ThriftHiveMetastore_drop_resource_plan_args(const ThriftHiveMetastore_drop_resource_plan_args&);
+  ThriftHiveMetastore_drop_resource_plan_args& operator=(const ThriftHiveMetastore_drop_resource_plan_args&);
+  ThriftHiveMetastore_drop_resource_plan_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_resource_plan_args() throw();
+  WMDropResourcePlanRequest request;
+
+  _ThriftHiveMetastore_drop_resource_plan_args__isset __isset;
+
+  void __set_request(const WMDropResourcePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_drop_resource_plan_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_resource_plan_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_resource_plan_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_resource_plan_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_resource_plan_pargs() throw();
+  const WMDropResourcePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_resource_plan_result__isset {
+  _ThriftHiveMetastore_drop_resource_plan_result__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_drop_resource_plan_result__isset;
+
+class ThriftHiveMetastore_drop_resource_plan_result {
+ public:
+
+  ThriftHiveMetastore_drop_resource_plan_result(const ThriftHiveMetastore_drop_resource_plan_result&);
+  ThriftHiveMetastore_drop_resource_plan_result& operator=(const ThriftHiveMetastore_drop_resource_plan_result&);
+  ThriftHiveMetastore_drop_resource_plan_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_resource_plan_result() throw();
+  WMDropResourcePlanResponse success;
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_drop_resource_plan_result__isset __isset;
+
+  void __set_success(const WMDropResourcePlanResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const InvalidOperationException& val);
+
+  void __set_o3(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_drop_resource_plan_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_resource_plan_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_resource_plan_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_resource_plan_presult__isset {
+  _ThriftHiveMetastore_drop_resource_plan_presult__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_drop_resource_plan_presult__isset;
+
+class ThriftHiveMetastore_drop_resource_plan_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_resource_plan_presult() throw();
+  WMDropResourcePlanResponse* success;
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_drop_resource_plan_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_create_wm_trigger_args__isset {
+  _ThriftHiveMetastore_create_wm_trigger_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_create_wm_trigger_args__isset;
+
+class ThriftHiveMetastore_create_wm_trigger_args {
+ public:
+
+  ThriftHiveMetastore_create_wm_trigger_args(const ThriftHiveMetastore_create_wm_trigger_args&);
+  ThriftHiveMetastore_create_wm_trigger_args& operator=(const ThriftHiveMetastore_create_wm_trigger_args&);
+  ThriftHiveMetastore_create_wm_trigger_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_wm_trigger_args() throw();
+  WMCreateTriggerRequest request;
+
+  _ThriftHiveMetastore_create_wm_trigger_args__isset __isset;
+
+  void __set_request(const WMCreateTriggerRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_create_wm_trigger_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_wm_trigger_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_wm_trigger_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_create_wm_trigger_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_wm_trigger_pargs() throw();
+  const WMCreateTriggerRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_wm_trigger_result__isset {
+  _ThriftHiveMetastore_create_wm_trigger_result__isset() : success(false), o1(false), o2(false), o3(false), o4(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+  bool o4 :1;
+} _ThriftHiveMetastore_create_wm_trigger_result__isset;
+
+class ThriftHiveMetastore_create_wm_trigger_result {
+ public:
+
+  ThriftHiveMetastore_create_wm_trigger_result(const ThriftHiveMetastore_create_wm_trigger_result&);
+  ThriftHiveMetastore_create_wm_trigger_result& operator=(const ThriftHiveMetastore_create_wm_trigger_result&);
+  ThriftHiveMetastore_create_wm_trigger_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_create_wm_trigger_result() throw();
+  WMCreateTriggerResponse success;
+  AlreadyExistsException o1;
+  NoSuchObjectException o2;
+  InvalidObjectException o3;
+  MetaException o4;
+
+  _ThriftHiveMetastore_create_wm_trigger_result__isset __isset;
+
+  void __set_success(const WMCreateTriggerResponse& val);
+
+  void __set_o1(const AlreadyExistsException& val);
+
+  void __set_o2(const NoSuchObjectException& val);
+
+  void __set_o3(const InvalidObjectException& val);
+
+  void __set_o4(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_create_wm_trigger_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    if (!(o4 == rhs.o4))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_create_wm_trigger_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_create_wm_trigger_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_create_wm_trigger_presult__isset {
+  _ThriftHiveMetastore_create_wm_trigger_presult__isset() : success(false), o1(false), o2(false), o3(false), o4(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+  bool o4 :1;
+} _ThriftHiveMetastore_create_wm_trigger_presult__isset;
+
+class ThriftHiveMetastore_create_wm_trigger_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_create_wm_trigger_presult() throw();
+  WMCreateTriggerResponse* success;
+  AlreadyExistsException o1;
+  NoSuchObjectException o2;
+  InvalidObjectException o3;
+  MetaException o4;
+
+  _ThriftHiveMetastore_create_wm_trigger_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_wm_trigger_args__isset {
+  _ThriftHiveMetastore_alter_wm_trigger_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_alter_wm_trigger_args__isset;
+
+class ThriftHiveMetastore_alter_wm_trigger_args {
+ public:
+
+  ThriftHiveMetastore_alter_wm_trigger_args(const ThriftHiveMetastore_alter_wm_trigger_args&);
+  ThriftHiveMetastore_alter_wm_trigger_args& operator=(const ThriftHiveMetastore_alter_wm_trigger_args&);
+  ThriftHiveMetastore_alter_wm_trigger_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_alter_wm_trigger_args() throw();
+  WMAlterTriggerRequest request;
+
+  _ThriftHiveMetastore_alter_wm_trigger_args__isset __isset;
+
+  void __set_request(const WMAlterTriggerRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_alter_wm_trigger_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_alter_wm_trigger_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_alter_wm_trigger_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_alter_wm_trigger_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_alter_wm_trigger_pargs() throw();
+  const WMAlterTriggerRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_wm_trigger_result__isset {
+  _ThriftHiveMetastore_alter_wm_trigger_result__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_alter_wm_trigger_result__isset;
+
+class ThriftHiveMetastore_alter_wm_trigger_result {
+ public:
+
+  ThriftHiveMetastore_alter_wm_trigger_result(const ThriftHiveMetastore_alter_wm_trigger_result&);
+  ThriftHiveMetastore_alter_wm_trigger_result& operator=(const ThriftHiveMetastore_alter_wm_trigger_result&);
+  ThriftHiveMetastore_alter_wm_trigger_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_alter_wm_trigger_result() throw();
+  WMAlterTriggerResponse success;
+  NoSuchObjectException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_alter_wm_trigger_result__isset __isset;
+
+  void __set_success(const WMAlterTriggerResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const InvalidObjectException& val);
+
+  void __set_o3(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_alter_wm_trigger_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_alter_wm_trigger_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_alter_wm_trigger_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_alter_wm_trigger_presult__isset {
+  _ThriftHiveMetastore_alter_wm_trigger_presult__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_alter_wm_trigger_presult__isset;
+
+class ThriftHiveMetastore_alter_wm_trigger_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_alter_wm_trigger_presult() throw();
+  WMAlterTriggerResponse* success;
+  NoSuchObjectException o1;
+  InvalidObjectException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_alter_wm_trigger_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_wm_trigger_args__isset {
+  _ThriftHiveMetastore_drop_wm_trigger_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_drop_wm_trigger_args__isset;
+
+class ThriftHiveMetastore_drop_wm_trigger_args {
+ public:
+
+  ThriftHiveMetastore_drop_wm_trigger_args(const ThriftHiveMetastore_drop_wm_trigger_args&);
+  ThriftHiveMetastore_drop_wm_trigger_args& operator=(const ThriftHiveMetastore_drop_wm_trigger_args&);
+  ThriftHiveMetastore_drop_wm_trigger_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_wm_trigger_args() throw();
+  WMDropTriggerRequest request;
+
+  _ThriftHiveMetastore_drop_wm_trigger_args__isset __isset;
+
+  void __set_request(const WMDropTriggerRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_drop_wm_trigger_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_wm_trigger_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_wm_trigger_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_drop_wm_trigger_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_wm_trigger_pargs() throw();
+  const WMDropTriggerRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_wm_trigger_result__isset {
+  _ThriftHiveMetastore_drop_wm_trigger_result__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_drop_wm_trigger_result__isset;
+
+class ThriftHiveMetastore_drop_wm_trigger_result {
+ public:
+
+  ThriftHiveMetastore_drop_wm_trigger_result(const ThriftHiveMetastore_drop_wm_trigger_result&);
+  ThriftHiveMetastore_drop_wm_trigger_result& operator=(const ThriftHiveMetastore_drop_wm_trigger_result&);
+  ThriftHiveMetastore_drop_wm_trigger_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_drop_wm_trigger_result() throw();
+  WMDropTriggerResponse success;
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_drop_wm_trigger_result__isset __isset;
+
+  void __set_success(const WMDropTriggerResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const InvalidOperationException& val);
+
+  void __set_o3(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_drop_wm_trigger_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    if (!(o3 == rhs.o3))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_drop_wm_trigger_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_drop_wm_trigger_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_drop_wm_trigger_presult__isset {
+  _ThriftHiveMetastore_drop_wm_trigger_presult__isset() : success(false), o1(false), o2(false), o3(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+  bool o3 :1;
+} _ThriftHiveMetastore_drop_wm_trigger_presult__isset;
+
+class ThriftHiveMetastore_drop_wm_trigger_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_drop_wm_trigger_presult() throw();
+  WMDropTriggerResponse* success;
+  NoSuchObjectException o1;
+  InvalidOperationException o2;
+  MetaException o3;
+
+  _ThriftHiveMetastore_drop_wm_trigger_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ThriftHiveMetastore_get_triggers_for_resourceplan_args__isset {
+  _ThriftHiveMetastore_get_triggers_for_resourceplan_args__isset() : request(false) {}
+  bool request :1;
+} _ThriftHiveMetastore_get_triggers_for_resourceplan_args__isset;
+
+class ThriftHiveMetastore_get_triggers_for_resourceplan_args {
+ public:
+
+  ThriftHiveMetastore_get_triggers_for_resourceplan_args(const ThriftHiveMetastore_get_triggers_for_resourceplan_args&);
+  ThriftHiveMetastore_get_triggers_for_resourceplan_args& operator=(const ThriftHiveMetastore_get_triggers_for_resourceplan_args&);
+  ThriftHiveMetastore_get_triggers_for_resourceplan_args() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_triggers_for_resourceplan_args() throw();
+  WMGetTriggersForResourePlanRequest request;
+
+  _ThriftHiveMetastore_get_triggers_for_resourceplan_args__isset __isset;
+
+  void __set_request(const WMGetTriggersForResourePlanRequest& val);
+
+  bool operator == (const ThriftHiveMetastore_get_triggers_for_resourceplan_args & rhs) const
+  {
+    if (!(request == rhs.request))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_triggers_for_resourceplan_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_triggers_for_resourceplan_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ThriftHiveMetastore_get_triggers_for_resourceplan_pargs {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_triggers_for_resourceplan_pargs() throw();
+  const WMGetTriggersForResourePlanRequest* request;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_triggers_for_resourceplan_result__isset {
+  _ThriftHiveMetastore_get_triggers_for_resourceplan_result__isset() : success(false), o1(false), o2(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+} _ThriftHiveMetastore_get_triggers_for_resourceplan_result__isset;
+
+class ThriftHiveMetastore_get_triggers_for_resourceplan_result {
+ public:
+
+  ThriftHiveMetastore_get_triggers_for_resourceplan_result(const ThriftHiveMetastore_get_triggers_for_resourceplan_result&);
+  ThriftHiveMetastore_get_triggers_for_resourceplan_result& operator=(const ThriftHiveMetastore_get_triggers_for_resourceplan_result&);
+  ThriftHiveMetastore_get_triggers_for_resourceplan_result() {
+  }
+
+  virtual ~ThriftHiveMetastore_get_triggers_for_resourceplan_result() throw();
+  WMGetTriggersForResourePlanResponse success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_triggers_for_resourceplan_result__isset __isset;
+
+  void __set_success(const WMGetTriggersForResourePlanResponse& val);
+
+  void __set_o1(const NoSuchObjectException& val);
+
+  void __set_o2(const MetaException& val);
+
+  bool operator == (const ThriftHiveMetastore_get_triggers_for_resourceplan_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(o1 == rhs.o1))
+      return false;
+    if (!(o2 == rhs.o2))
+      return false;
+    return true;
+  }
+  bool operator != (const ThriftHiveMetastore_get_triggers_for_resourceplan_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ThriftHiveMetastore_get_triggers_for_resourceplan_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ThriftHiveMetastore_get_triggers_for_resourceplan_presult__isset {
+  _ThriftHiveMetastore_get_triggers_for_resourceplan_presult__isset() : success(false), o1(false), o2(false) {}
+  bool success :1;
+  bool o1 :1;
+  bool o2 :1;
+} _ThriftHiveMetastore_get_triggers_for_resourceplan_presult__isset;
+
+class ThriftHiveMetastore_get_triggers_for_resourceplan_presult {
+ public:
+
+
+  virtual ~ThriftHiveMetastore_get_triggers_for_resourceplan_presult() throw();
+  WMGetTriggersForResourePlanResponse* success;
+  NoSuchObjectException o1;
+  MetaException o2;
+
+  _ThriftHiveMetastore_get_triggers_for_resourceplan_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
 class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  ::facebook::fb303::FacebookServiceClient {
  public:
   ThriftHiveMetastoreClient(boost::shared_ptr< ::apache::thrift::protocol::TProtocol> prot) :
@@ -21174,6 +22462,36 @@ class ThriftHiveMetastoreClient : virtual public ThriftHiveMetastoreIf, public  
   void get_metastore_db_uuid(std::string& _return);
   void send_get_metastore_db_uuid();
   void recv_get_metastore_db_uuid(std::string& _return);
+  void create_resource_plan(WMCreateResourcePlanResponse& _return, const WMCreateResourcePlanRequest& request);
+  void send_create_resource_plan(const WMCreateResourcePlanRequest& request);
+  void recv_create_resource_plan(WMCreateResourcePlanResponse& _return);
+  void get_resource_plan(WMGetResourcePlanResponse& _return, const WMGetResourcePlanRequest& request);
+  void send_get_resource_plan(const WMGetResourcePlanRequest& request);
+  void recv_get_resource_plan(WMGetResourcePlanResponse& _return);
+  void get_all_resource_plans(WMGetAllResourcePlanResponse& _return, const WMGetAllResourcePlanRequest& request);
+  void send_get_all_resource_plans(const WMGetAllResourcePlanRequest& request);
+  void recv_get_all_resource_plans(WMGetAllResourcePlanResponse& _return);
+  void alter_resource_plan(WMAlterResourcePlanResponse& _return, const WMAlterResourcePlanRequest& request);
+  void send_alter_resource_plan(const WMAlterResourcePlanRequest& request);
+  void recv_alter_resource_plan(WMAlterResourcePlanResponse& _return);
+  void validate_resource_plan(WMValidateResourcePlanResponse& _return, const WMValidateResourcePlanRequest& request);
+  void send_validate_resource_plan(const WMValidateResourcePlanRequest& request);
+  void recv_validate_resource_plan(WMValidateResourcePlanResponse& _return);
+  void drop_resource_plan(WMDropResourcePlanResponse& _return, const WMDropResourcePlanRequest& request);
+  void send_drop_resource_plan(const WMDropResourcePlanRequest& request);
+  void recv_drop_resource_plan(WMDropResourcePlanResponse& _return);
+  void create_wm_trigger(WMCreateTriggerResponse& _return, const WMCreateTriggerRequest& request);
+  void send_create_wm_trigger(const WMCreateTriggerRequest& request);
+  void recv_create_wm_trigger(WMCreateTriggerResponse& _return);
+  void alter_wm_trigger(WMAlterTriggerResponse& _return, const WMAlterTriggerRequest& request);
+  void send_alter_wm_trigger(const WMAlterTriggerRequest& request);
+  void recv_alter_wm_trigger(WMAlterTriggerResponse& _return);
+  void drop_wm_trigger(WMDropTriggerResponse& _return, const WMDropTriggerRequest& request);
+  void send_drop_wm_trigger(const WMDropTriggerRequest& request);
+  void recv_drop_wm_trigger(WMDropTriggerResponse& _return);
+  void get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return, const WMGetTriggersForResourePlanRequest& request);
+  void send_get_triggers_for_resourceplan(const WMGetTriggersForResourePlanRequest& request);
+  void recv_get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return);
 };
 
 class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceProcessor {
@@ -21346,6 +22664,16 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
   void process_clear_file_metadata(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_cache_file_metadata(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_get_metastore_db_uuid(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_create_resource_plan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_resource_plan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_all_resource_plans(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_alter_resource_plan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_validate_resource_plan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_resource_plan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_create_wm_trigger(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_alter_wm_trigger(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_drop_wm_trigger(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_get_triggers_for_resourceplan(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
  public:
   ThriftHiveMetastoreProcessor(boost::shared_ptr<ThriftHiveMetastoreIf> iface) :
      ::facebook::fb303::FacebookServiceProcessor(iface),
@@ -21512,6 +22840,16 @@ class ThriftHiveMetastoreProcessor : public  ::facebook::fb303::FacebookServiceP
     processMap_["clear_file_metadata"] = &ThriftHiveMetastoreProcessor::process_clear_file_metadata;
     processMap_["cache_file_metadata"] = &ThriftHiveMetastoreProcessor::process_cache_file_metadata;
     processMap_["get_metastore_db_uuid"] = &ThriftHiveMetastoreProcessor::process_get_metastore_db_uuid;
+    processMap_["create_resource_plan"] = &ThriftHiveMetastoreProcessor::process_create_resource_plan;
+    processMap_["get_resource_plan"] = &ThriftHiveMetastoreProcessor::process_get_resource_plan;
+    processMap_["get_all_resource_plans"] = &ThriftHiveMetastoreProcessor::process_get_all_resource_plans;
+    processMap_["alter_resource_plan"] = &ThriftHiveMetastoreProcessor::process_alter_resource_plan;
+    processMap_["validate_resource_plan"] = &ThriftHiveMetastoreProcessor::process_validate_resource_plan;
+    processMap_["drop_resource_plan"] = &ThriftHiveMetastoreProcessor::process_drop_resource_plan;
+    processMap_["create_wm_trigger"] = &ThriftHiveMetastoreProcessor::process_create_wm_trigger;
+    processMap_["alter_wm_trigger"] = &ThriftHiveMetastoreProcessor::process_alter_wm_trigger;
+    processMap_["drop_wm_trigger"] = &ThriftHiveMetastoreProcessor::process_drop_wm_trigger;
+    processMap_["get_triggers_for_resourceplan"] = &ThriftHiveMetastoreProcessor::process_get_triggers_for_resourceplan;
   }
 
   virtual ~ThriftHiveMetastoreProcessor() {}
@@ -23099,6 +24437,106 @@ class ThriftHiveMetastoreMultiface : virtual public ThriftHiveMetastoreIf, publi
     return;
   }
 
+  void create_resource_plan(WMCreateResourcePlanResponse& _return, const WMCreateResourcePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->create_resource_plan(_return, request);
+    }
+    ifaces_[i]->create_resource_plan(_return, request);
+    return;
+  }
+
+  void get_resource_plan(WMGetResourcePlanResponse& _return, const WMGetResourcePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_resource_plan(_return, request);
+    }
+    ifaces_[i]->get_resource_plan(_return, request);
+    return;
+  }
+
+  void get_all_resource_plans(WMGetAllResourcePlanResponse& _return, const WMGetAllResourcePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_all_resource_plans(_return, request);
+    }
+    ifaces_[i]->get_all_resource_plans(_return, request);
+    return;
+  }
+
+  void alter_resource_plan(WMAlterResourcePlanResponse& _return, const WMAlterResourcePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->alter_resource_plan(_return, request);
+    }
+    ifaces_[i]->alter_resource_plan(_return, request);
+    return;
+  }
+
+  void validate_resource_plan(WMValidateResourcePlanResponse& _return, const WMValidateResourcePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->validate_resource_plan(_return, request);
+    }
+    ifaces_[i]->validate_resource_plan(_return, request);
+    return;
+  }
+
+  void drop_resource_plan(WMDropResourcePlanResponse& _return, const WMDropResourcePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_resource_plan(_return, request);
+    }
+    ifaces_[i]->drop_resource_plan(_return, request);
+    return;
+  }
+
+  void create_wm_trigger(WMCreateTriggerResponse& _return, const WMCreateTriggerRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->create_wm_trigger(_return, request);
+    }
+    ifaces_[i]->create_wm_trigger(_return, request);
+    return;
+  }
+
+  void alter_wm_trigger(WMAlterTriggerResponse& _return, const WMAlterTriggerRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->alter_wm_trigger(_return, request);
+    }
+    ifaces_[i]->alter_wm_trigger(_return, request);
+    return;
+  }
+
+  void drop_wm_trigger(WMDropTriggerResponse& _return, const WMDropTriggerRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->drop_wm_trigger(_return, request);
+    }
+    ifaces_[i]->drop_wm_trigger(_return, request);
+    return;
+  }
+
+  void get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return, const WMGetTriggersForResourePlanRequest& request) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->get_triggers_for_resourceplan(_return, request);
+    }
+    ifaces_[i]->get_triggers_for_resourceplan(_return, request);
+    return;
+  }
+
 };
 
 // The 'concurrent' client is a thread safe client that correctly handles
@@ -23601,6 +25039,36 @@ class ThriftHiveMetastoreConcurrentClient : virtual public ThriftHiveMetastoreIf
   void get_metastore_db_uuid(std::string& _return);
   int32_t send_get_metastore_db_uuid();
   void recv_get_metastore_db_uuid(std::string& _return, const int32_t seqid);
+  void create_resource_plan(WMCreateResourcePlanResponse& _return, const WMCreateResourcePlanRequest& request);
+  int32_t send_create_resource_plan(const WMCreateResourcePlanRequest& request);
+  void recv_create_resource_plan(WMCreateResourcePlanResponse& _return, const int32_t seqid);
+  void get_resource_plan(WMGetResourcePlanResponse& _return, const WMGetResourcePlanRequest& request);
+  int32_t send_get_resource_plan(const WMGetResourcePlanRequest& request);
+  void recv_get_resource_plan(WMGetResourcePlanResponse& _return, const int32_t seqid);
+  void get_all_resource_plans(WMGetAllResourcePlanResponse& _return, const WMGetAllResourcePlanRequest& request);
+  int32_t send_get_all_resource_plans(const WMGetAllResourcePlanRequest& request);
+  void recv_get_all_resource_plans(WMGetAllResourcePlanResponse& _return, const int32_t seqid);
+  void alter_resource_plan(WMAlterResourcePlanResponse& _return, const WMAlterResourcePlanRequest& request);
+  int32_t send_alter_resource_plan(const WMAlterResourcePlanRequest& request);
+  void recv_alter_resource_plan(WMAlterResourcePlanResponse& _return, const int32_t seqid);
+  void validate_resource_plan(WMValidateResourcePlanResponse& _return, const WMValidateResourcePlanRequest& request);
+  int32_t send_validate_resource_plan(const WMValidateResourcePlanRequest& request);
+  void recv_validate_resource_plan(WMValidateResourcePlanResponse& _return, const int32_t seqid);
+  void drop_resource_plan(WMDropResourcePlanResponse& _return, const WMDropResourcePlanRequest& request);
+  int32_t send_drop_resource_plan(const WMDropResourcePlanRequest& request);
+  void recv_drop_resource_plan(WMDropResourcePlanResponse& _return, const int32_t seqid);
+  void create_wm_trigger(WMCreateTriggerResponse& _return, const WMCreateTriggerRequest& request);
+  int32_t send_create_wm_trigger(const WMCreateTriggerRequest& request);
+  void recv_create_wm_trigger(WMCreateTriggerResponse& _return, const int32_t seqid);
+  void alter_wm_trigger(WMAlterTriggerResponse& _return, const WMAlterTriggerRequest& request);
+  int32_t send_alter_wm_trigger(const WMAlterTriggerRequest& request);
+  void recv_alter_wm_trigger(WMAlterTriggerResponse& _return, const int32_t seqid);
+  void drop_wm_trigger(WMDropTriggerResponse& _return, const WMDropTriggerRequest& request);
+  int32_t send_drop_wm_trigger(const WMDropTriggerRequest& request);
+  void recv_drop_wm_trigger(WMDropTriggerResponse& _return, const int32_t seqid);
+  void get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return, const WMGetTriggersForResourePlanRequest& request);
+  int32_t send_get_triggers_for_resourceplan(const WMGetTriggersForResourePlanRequest& request);
+  void recv_get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return, const int32_t seqid);
 };
 
 #ifdef _WIN32

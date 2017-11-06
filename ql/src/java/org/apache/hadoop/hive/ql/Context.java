@@ -59,6 +59,7 @@ import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.QB;
 import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
 import org.apache.hadoop.hive.ql.session.SessionState;
+import org.apache.hadoop.hive.ql.wm.TriggerContext;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.util.StringUtils;
 import org.slf4j.Logger;
@@ -102,6 +103,10 @@ public class Context {
   // number of previous attempts
   protected int tryCount = 0;
   private TokenRewriteStream tokenRewriteStream;
+  // Holds the qualified name to tokenRewriteStream for the views
+  // referenced by the query. This is used to rewrite the view AST
+  // with column masking and row filtering policies.
+  private final Map<String, TokenRewriteStream> viewsTokenRewriteStreams;
 
   private final String executionId;
   // Some statements, e.g., UPDATE, DELETE, or MERGE, get rewritten into different
@@ -145,8 +150,18 @@ public class Context {
    */
   private Map<Integer, DestClausePrefix> insertBranchToNamePrefix = new HashMap<>();
   private Operation operation = Operation.OTHER;
+  private TriggerContext triggerContext;
+
   public void setOperation(Operation operation) {
     this.operation = operation;
+  }
+
+  public TriggerContext getTriggerContext() {
+    return triggerContext;
+  }
+
+  public void setTriggerContext(final TriggerContext triggerContext) {
+    this.triggerContext = triggerContext;
   }
 
   /**
@@ -282,6 +297,8 @@ public class Context {
     scratchDirPermission = HiveConf.getVar(conf, HiveConf.ConfVars.SCRATCHDIRPERMISSION);
     stagingDir = HiveConf.getVar(conf, HiveConf.ConfVars.STAGINGDIR);
     opContext = new CompilationOpContext();
+
+    viewsTokenRewriteStreams = new HashMap<>();
   }
 
   public Map<String, Path> getFsScratchDirs() {
@@ -369,7 +386,8 @@ public class Context {
       // Append task specific info to stagingPathName, instead of creating a sub-directory.
       // This way we don't have to worry about deleting the stagingPathName separately at
       // end of query execution.
-      dir = fs.makeQualified(new Path(stagingPathName + "_" + this.executionId + "-" + TaskRunner.getTaskRunnerID()));
+      dir = fs.makeQualified(new Path(
+          stagingPathName + "_" + this.executionId + "-" + TaskRunner.getTaskRunnerID()));
 
       LOG.debug("Created staging dir = " + dir + " for path = " + inputPath);
 
@@ -807,6 +825,15 @@ public class Context {
     return tokenRewriteStream;
   }
 
+  public void addViewTokenRewriteStream(String viewFullyQualifiedName,
+      TokenRewriteStream tokenRewriteStream) {
+    viewsTokenRewriteStreams.put(viewFullyQualifiedName, tokenRewriteStream);
+  }
+
+  public TokenRewriteStream getViewTokenRewriteStream(String viewFullyQualifiedName) {
+    return viewsTokenRewriteStreams.get(viewFullyQualifiedName);
+  }
+
   /**
    * Generate a unique executionId.  An executionId, together with user name and
    * the configuration, will determine the temporary locations of all intermediate
@@ -989,7 +1016,7 @@ public class Context {
     this.explainConfig = explainConfig;
   }
 
-  public void resetOpContext(){
+  public void resetOpContext() {
     opContext = new CompilationOpContext();
     sequencer = new AtomicInteger();
   }

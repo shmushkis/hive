@@ -127,6 +127,7 @@ TOK_DATETIME;
 TOK_TIMESTAMP;
 TOK_TIMESTAMPLITERAL;
 TOK_TIMESTAMPLOCALTZ;
+TOK_TIMESTAMPLOCALTZLITERAL;
 TOK_INTERVAL_YEAR_MONTH;
 TOK_INTERVAL_YEAR_MONTH_LITERAL;
 TOK_INTERVAL_DAY_TIME;
@@ -330,6 +331,7 @@ TOK_DBPROPLIST;
 TOK_ALTERDATABASE_PROPERTIES;
 TOK_ALTERDATABASE_OWNER;
 TOK_ALTERDATABASE_LOCATION;
+TOK_DBNAME;
 TOK_TABNAME;
 TOK_TABSRC;
 TOK_RESTRICT;
@@ -393,6 +395,8 @@ TOK_DELETE;
 TOK_REPL_DUMP;
 TOK_REPL_LOAD;
 TOK_REPL_STATUS;
+TOK_REPL_CONFIG;
+TOK_REPL_CONFIG_LIST;
 TOK_TO;
 TOK_ONLY;
 TOK_SUMMARY;
@@ -401,6 +405,18 @@ TOK_EXPRESSION;
 TOK_DETAIL;
 TOK_BLOCKING;
 TOK_KILL_QUERY;
+TOK_CREATERESOURCEPLAN;
+TOK_SHOWRESOURCEPLAN;
+TOK_ALTER_RP;
+TOK_DROP_RP;
+TOK_VALIDATE;
+TOK_ACTIVATE;
+TOK_QUERY_PARALLELISM;
+TOK_RENAME;
+TOK_CREATE_TRIGGER;
+TOK_ALTER_TRIGGER;
+TOK_DROP_TRIGGER;
+TOK_TRIGGER_EXPRESSION;
 }
 
 
@@ -573,6 +589,13 @@ import org.apache.hadoop.hive.conf.HiveConf;
     xlateMap.put("KW_WAIT", "WAIT");
     xlateMap.put("KW_KILL", "KILL");
     xlateMap.put("KW_QUERY", "QUERY");
+    xlateMap.put("KW_RESOURCE", "RESOURCE");
+    xlateMap.put("KW_PLAN", "PLAN");
+    xlateMap.put("KW_QUERY_PARALLELISM", "QUERY_PARALLELISM");
+    xlateMap.put("KW_PLANS", "PLANS");
+    xlateMap.put("KW_ACTIVATE", "ACTIVATE");
+    xlateMap.put("KW_MOVE", "MOVE");
+    xlateMap.put("KW_DO", "DO");
 
     // Operators
     xlateMap.put("DOT", ".");
@@ -842,8 +865,23 @@ replLoadStatement
       : KW_REPL KW_LOAD
         ((dbName=identifier) (DOT tblName=identifier)?)?
         KW_FROM (path=StringLiteral)
-      -> ^(TOK_REPL_LOAD $path $dbName? $tblName?)
+        (KW_WITH replConf=replConfigs)?
+      -> ^(TOK_REPL_LOAD $path ^(TOK_DBNAME $dbName)? ^(TOK_TABNAME $tblName)? $replConf?)
       ;
+
+replConfigs
+@init { pushMsg("repl configurations", state); }
+@after { popMsg(state); }
+    :
+      LPAREN replConfigsList RPAREN -> ^(TOK_REPL_CONFIG replConfigsList)
+    ;
+
+replConfigsList
+@init { pushMsg("repl configurations list", state); }
+@after { popMsg(state); }
+    :
+      keyValueProperty (COMMA keyValueProperty)* -> ^(TOK_REPL_CONFIG_LIST keyValueProperty+)
+    ;
 
 replStatusStatement
 @init { pushMsg("replication load statement", state); }
@@ -896,6 +934,12 @@ ddlStatement
     | showCurrentRole
     | abortTransactionStatement
     | killQueryStatement
+    | createResourcePlanStatement
+    | alterResourcePlanStatement
+    | dropResourcePlanStatement
+    | createTriggerStatement
+    | alterTriggerStatement
+    | dropTriggerStatement
     ;
 
 ifExists
@@ -947,6 +991,112 @@ orReplace
 @after { popMsg(state); }
     : KW_OR KW_REPLACE
     -> ^(TOK_ORREPLACE)
+    ;
+
+createResourcePlanStatement
+@init { pushMsg("create resource plan statement", state); }
+@after { popMsg(state); }
+    : KW_CREATE KW_RESOURCE KW_PLAN
+        name=identifier
+        (KW_WITH KW_QUERY_PARALLELISM parallelism=Number)?
+    -> ^(TOK_CREATERESOURCEPLAN $name $parallelism?)
+    ;
+
+alterResourcePlanStatement
+@init { pushMsg("alter resource plan statement", state); }
+@after { popMsg(state); }
+    : KW_ALTER KW_RESOURCE KW_PLAN name=identifier (
+          (KW_VALIDATE -> ^(TOK_ALTER_RP $name TOK_VALIDATE))
+        | (KW_ACTIVATE -> ^(TOK_ALTER_RP $name TOK_ACTIVATE))
+        | (KW_ENABLE -> ^(TOK_ALTER_RP $name TOK_ENABLE))
+        | (KW_DISABLE -> ^(TOK_ALTER_RP $name TOK_DISABLE))
+        | (KW_SET KW_QUERY_PARALLELISM EQUAL parallelism=Number
+           -> ^(TOK_ALTER_RP $name TOK_QUERY_PARALLELISM $parallelism))
+        | (KW_RENAME KW_TO newName=identifier
+           -> ^(TOK_ALTER_RP $name TOK_RENAME $newName))
+      )
+    ;
+
+dropResourcePlanStatement
+@init { pushMsg("drop resource plan statement", state); }
+@after { popMsg(state); }
+    : KW_DROP KW_RESOURCE KW_PLAN name=identifier
+    -> ^(TOK_DROP_RP $name)
+    ;
+
+poolPath
+@init { pushMsg("poolPath", state); }
+@after { popMsg(state); }
+    : identifier^ (DOT identifier)*
+    ;
+
+triggerExpression
+@init { pushMsg("triggerExpression", state); }
+@after { popMsg(state); }
+    : triggerOrExpression -> ^(TOK_TRIGGER_EXPRESSION triggerOrExpression)
+    ;
+
+triggerOrExpression
+@init { pushMsg("triggerOrExpression", state); }
+@after { popMsg(state); }
+    : triggerAndExpression (KW_OR triggerAndExpression)*
+    ;
+
+triggerAndExpression
+@init { pushMsg("triggerAndExpression", state); }
+@after { popMsg(state); }
+    : triggerAtomExpression (KW_AND triggerAtomExpression)*
+    ;
+
+triggerAtomExpression
+@init { pushMsg("triggerAtomExpression", state); }
+@after { popMsg(state); }
+    : (identifier comparisionOperator triggerLiteral)
+    | (LPAREN triggerOrExpression RPAREN)
+    ;
+
+triggerLiteral
+@init { pushMsg("triggerLiteral", state); }
+@after { popMsg(state); }
+    : (Number (KW_HOUR|KW_MINUTE|KW_SECOND)?)
+    | ByteLengthLiteral
+    | StringLiteral
+    ;
+
+comparisionOperator
+@init { pushMsg("comparisionOperator", state); }
+@after { popMsg(state); }
+    : EQUAL | LESSTHAN | LESSTHANOREQUALTO | GREATERTHAN | GREATERTHANOREQUALTO
+    ;
+
+triggerActionExpression
+@init { pushMsg("triggerActionExpression", state); }
+@after { popMsg(state); }
+    : KW_KILL
+    | (KW_MOVE^ KW_TO! poolPath)
+    ;
+
+createTriggerStatement
+@init { pushMsg("create trigger statement", state); }
+@after { popMsg(state); }
+    : KW_CREATE KW_TRIGGER rpName=identifier DOT triggerName=identifier
+      KW_WHEN triggerExpression KW_DO triggerActionExpression
+    -> ^(TOK_CREATE_TRIGGER $rpName $triggerName triggerExpression triggerActionExpression)
+    ;
+
+alterTriggerStatement
+@init { pushMsg("alter trigger statement", state); }
+@after { popMsg(state); }
+    : KW_ALTER KW_TRIGGER rpName=identifier DOT triggerName=identifier
+      KW_WHEN triggerExpression KW_DO triggerActionExpression
+    -> ^(TOK_ALTER_TRIGGER $rpName $triggerName triggerExpression triggerActionExpression)
+    ;
+
+dropTriggerStatement
+@init { pushMsg("drop trigger statement", state); }
+@after { popMsg(state); }
+    : KW_DROP KW_TRIGGER rpName=identifier DOT triggerName=identifier
+    -> ^(TOK_DROP_TRIGGER $rpName $triggerName)
     ;
 
 createDatabaseStatement
@@ -1528,7 +1678,7 @@ descStatement
     |
     (KW_FUNCTION) => KW_FUNCTION KW_EXTENDED? (name=descFuncNames) -> ^(TOK_DESCFUNCTION $name KW_EXTENDED?)
     |
-    (KW_FORMATTED|KW_EXTENDED|KW_PRETTY) => ((descOptions=KW_FORMATTED|descOptions=KW_EXTENDED|descOptions=KW_PRETTY) parttype=tabPartColTypeExpr) -> ^(TOK_DESCTABLE $parttype $descOptions)
+    (KW_FORMATTED|KW_EXTENDED) => ((descOptions=KW_FORMATTED|descOptions=KW_EXTENDED) parttype=tabPartColTypeExpr) -> ^(TOK_DESCTABLE $parttype $descOptions)
     |
     parttype=tabPartColTypeExpr -> ^(TOK_DESCTABLE $parttype)
     )
@@ -1539,9 +1689,9 @@ analyzeStatement
 @after { popMsg(state); }
     : KW_ANALYZE KW_TABLE (parttype=tableOrPartition)
       (
-      (KW_COMPUTE) => KW_COMPUTE KW_STATISTICS ((noscan=KW_NOSCAN) | (partialscan=KW_PARTIALSCAN)
+      (KW_COMPUTE) => KW_COMPUTE KW_STATISTICS ((noscan=KW_NOSCAN)
                                                       | (KW_FOR KW_COLUMNS (statsColumnName=columnNameList)?))?
-      -> ^(TOK_ANALYZE $parttype $noscan? $partialscan? KW_COLUMNS? $statsColumnName?)
+      -> ^(TOK_ANALYZE $parttype $noscan? KW_COLUMNS? $statsColumnName?)
       |
       (KW_CACHE) => KW_CACHE KW_METADATA -> ^(TOK_CACHE_METADATA $parttype)
       )
@@ -1576,6 +1726,11 @@ showStatement
     | KW_SHOW KW_COMPACTIONS -> ^(TOK_SHOW_COMPACTIONS)
     | KW_SHOW KW_TRANSACTIONS -> ^(TOK_SHOW_TRANSACTIONS)
     | KW_SHOW KW_CONF StringLiteral -> ^(TOK_SHOWCONF StringLiteral)
+    | KW_SHOW KW_RESOURCE
+      (
+        (KW_PLAN rp_name=identifier -> ^(TOK_SHOWRESOURCEPLAN $rp_name))
+        | (KW_PLANS -> ^(TOK_SHOWRESOURCEPLAN))
+      )
     ;
 
 lockStatement
@@ -2171,6 +2326,7 @@ enableValidateSpecification
 @init { pushMsg("enable specification", state); }
 @after { popMsg(state); }
     : enableSpecification validateSpecification?
+    | enforcedSpecification
     ;
 
 enableSpecification
@@ -2185,6 +2341,13 @@ validateSpecification
 @after { popMsg(state); }
     : KW_VALIDATE -> ^(TOK_VALIDATE)
     | KW_NOVALIDATE -> ^(TOK_NOVALIDATE)
+    ;
+
+enforcedSpecification
+@init { pushMsg("enforced specification", state); }
+@after { popMsg(state); }
+    : KW_ENFORCED -> ^(TOK_ENABLE)
+    | KW_NOT KW_ENFORCED -> ^(TOK_DISABLE)
     ;
 
 relySpecification

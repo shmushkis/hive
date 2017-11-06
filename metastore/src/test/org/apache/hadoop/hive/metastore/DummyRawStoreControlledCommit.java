@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.hadoop.conf.Configurable;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.api.AggrStats;
+import org.apache.hadoop.hive.metastore.api.AlreadyExistsException;
 import org.apache.hadoop.hive.metastore.api.ColumnStatistics;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.api.CurrentNotificationEventId;
@@ -38,6 +39,7 @@ import org.apache.hadoop.hive.metastore.api.HiveObjectPrivilege;
 import org.apache.hadoop.hive.metastore.api.Index;
 import org.apache.hadoop.hive.metastore.api.InvalidInputException;
 import org.apache.hadoop.hive.metastore.api.InvalidObjectException;
+import org.apache.hadoop.hive.metastore.api.InvalidOperationException;
 import org.apache.hadoop.hive.metastore.api.InvalidPartitionException;
 import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.metastore.api.NoSuchObjectException;
@@ -52,6 +54,8 @@ import org.apache.hadoop.hive.metastore.api.PartitionValuesResponse;
 import org.apache.hadoop.hive.metastore.api.PrincipalPrivilegeSet;
 import org.apache.hadoop.hive.metastore.api.PrincipalType;
 import org.apache.hadoop.hive.metastore.api.PrivilegeBag;
+import org.apache.hadoop.hive.metastore.api.WMResourcePlan;
+import org.apache.hadoop.hive.metastore.api.WMTrigger;
 import org.apache.hadoop.hive.metastore.api.Role;
 import org.apache.hadoop.hive.metastore.api.RolePrincipalGrant;
 import org.apache.hadoop.hive.metastore.api.SQLForeignKey;
@@ -932,5 +936,64 @@ public class DummyRawStoreControlledCommit implements RawStore, Configurable {
   @Override
   public String getMetastoreDbUuid() throws MetaException {
     throw new MetaException("Get metastore uuid is not implemented");
+  }
+
+  @Override
+  public void createResourcePlan(WMResourcePlan resourcePlan)
+      throws AlreadyExistsException, MetaException {
+    objectStore.createResourcePlan(resourcePlan);
+  }
+
+  @Override
+  public WMResourcePlan getResourcePlan(String name) throws NoSuchObjectException {
+    return objectStore.getResourcePlan(name);
+  }
+
+  @Override
+  public List<WMResourcePlan> getAllResourcePlans() throws MetaException {
+    return objectStore.getAllResourcePlans();
+  }
+
+  @Override
+  public void alterResourcePlan(String name, WMResourcePlan resourcePlan)
+      throws AlreadyExistsException, NoSuchObjectException, InvalidOperationException,
+          MetaException {
+    objectStore.alterResourcePlan(name, resourcePlan);
+  }
+
+  @Override
+  public boolean validateResourcePlan(String name)
+      throws NoSuchObjectException, InvalidObjectException, MetaException {
+    return objectStore.validateResourcePlan(name);
+  }
+
+  @Override
+  public void dropResourcePlan(String name) throws NoSuchObjectException, MetaException {
+    objectStore.dropResourcePlan(name);
+  }
+
+  @Override
+  public void createWMTrigger(WMTrigger trigger)
+      throws AlreadyExistsException, MetaException, NoSuchObjectException,
+          InvalidOperationException {
+    objectStore.createWMTrigger(trigger);
+  }
+
+  @Override
+  public void alterWMTrigger(WMTrigger trigger)
+      throws NoSuchObjectException, InvalidOperationException, MetaException {
+    objectStore.alterWMTrigger(trigger);
+  }
+
+  @Override
+  public void dropWMTrigger(String resourcePlanName, String triggerName)
+      throws NoSuchObjectException, InvalidOperationException, MetaException {
+    objectStore.dropWMTrigger(resourcePlanName, triggerName);
+  }
+
+  @Override
+  public List<WMTrigger> getTriggersForResourcePlan(String resourcePlanName)
+      throws NoSuchObjectException, MetaException {
+    return objectStore.getTriggersForResourcePlan(resourcePlanName);
   }
 }

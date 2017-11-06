@@ -43,6 +43,7 @@ import org.apache.hadoop.hive.metastore.api.hive_metastoreConstants;
 import org.apache.hadoop.hive.ql.index.HiveIndex;
 import org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat;
 import org.apache.hadoop.hive.ql.session.SessionState;
+import org.apache.hadoop.hive.ql.stats.StatsUtils;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe;
 import org.apache.hadoop.hive.serde2.thrift.ThriftDeserializer;
@@ -325,8 +326,8 @@ public class TestHive extends TestCase {
       tbl.setCreateTime(ft.getTTable().getCreateTime());
       tbl.getParameters().put(hive_metastoreConstants.DDL_TIME,
           ft.getParameters().get(hive_metastoreConstants.DDL_TIME));
-      assertTrue("Tables  doesn't match: " + tableName, ft.getTTable()
-          .equals(tbl.getTTable()));
+      assertTrue("Tables  doesn't match: " + tableName + " (" + ft.getTTable()
+          + "; " + tbl.getTTable() + ")", ft.getTTable().equals(tbl.getTTable()));
       assertEquals("SerializationLib is not set correctly", tbl
           .getSerializationLib(), ft.getSerializationLib());
       assertEquals("Serde is not set correctly", tbl.getDeserializer()
@@ -503,7 +504,7 @@ public class TestHive extends TestCase {
       return hm.getTable(dbName, tableName);
     }
     catch (Exception exception) {
-      fail("Unable to drop and create table " + dbName + "." + tableName
+      fail("Unable to drop and create table " + StatsUtils.getFullyQualifiedTableName(dbName, tableName)
           + " because " + StringUtils.stringifyException(exception));
       throw exception;
     }

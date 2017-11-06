@@ -614,14 +614,12 @@ public class HiveSchemaTool {
       if (validateLocations(conn, this.validationServers)) {
         System.out.println("[SUCCESS]\n");
       } else {
-        success = false;
-        System.out.println("[FAIL]\n");
+        System.out.println("[WARN]\n");
       }
       if (validateColumnNullValues(conn)) {
         System.out.println("[SUCCESS]\n");
       } else {
-        success = false;
-        System.out.println("[FAIL]\n");
+        System.out.println("[WARN]\n");
       }
     } finally {
       if (conn != null) {
@@ -669,27 +667,31 @@ public class HiveSchemaTool {
       for (String seqName : seqNameToTable.keySet()) {
         String tableName = seqNameToTable.get(seqName).getLeft();
         String tableKey = seqNameToTable.get(seqName).getRight();
+        String fullSequenceName = "org.apache.hadoop.hive.metastore.model." + seqName;
         String seqQuery = needsQuotedIdentifier ?
-            ("select t.\"NEXT_VAL\" from \"SEQUENCE_TABLE\" t WHERE t.\"SEQUENCE_NAME\"='org.apache.hadoop.hive.metastore.model." + seqName + "' order by t.\"SEQUENCE_NAME\" ")
-            : ("select t.NEXT_VAL from SEQUENCE_TABLE t WHERE t.SEQUENCE_NAME='org.apache.hadoop.hive.metastore.model." + seqName + "' order by t.SEQUENCE_NAME ");
+            ("select t.\"NEXT_VAL\" from \"SEQUENCE_TABLE\" t WHERE t.\"SEQUENCE_NAME\"=? order by t.\"SEQUENCE_NAME\" ")
+            : ("select t.NEXT_VAL from SEQUENCE_TABLE t WHERE t.SEQUENCE_NAME=? order by t.SEQUENCE_NAME ");
         String maxIdQuery = needsQuotedIdentifier ?
             ("select max(\"" + tableKey + "\") from \"" + tableName + "\"")
             : ("select max(" + tableKey + ") from " + tableName);
 
-          ResultSet res = stmt.executeQuery(maxIdQuery);
-          if (res.next()) {
-             long maxId = res.getLong(1);
-             if (maxId > 0) {
-               ResultSet resSeq = stmt.executeQuery(seqQuery);
-               if (!resSeq.next()) {
-                 isValid = false;
-                 System.err.println("Missing SEQUENCE_NAME " + seqName + " from SEQUENCE_TABLE");
-               } else if (resSeq.getLong(1) < maxId) {
-                 isValid = false;
-                 System.err.println("NEXT_VAL for " + seqName + " in SEQUENCE_TABLE < max("+ tableKey + ") in " + tableName);
-               }
-             }
+        ResultSet res = stmt.executeQuery(maxIdQuery);
+        if (res.next()) {
+          long maxId = res.getLong(1);
+          if (maxId > 0) {
+            PreparedStatement pStmt = conn.prepareStatement(seqQuery);
+            pStmt.setString(1, fullSequenceName);
+            ResultSet resSeq = pStmt.executeQuery();
+            if (!resSeq.next()) {
+              isValid = false;
+              System.err.println("Missing SEQUENCE_NAME " + seqName + " from SEQUENCE_TABLE");
+            } else if (resSeq.getLong(1) < maxId) {
+              isValid = false;
+              System.err.println("NEXT_VAL for " + seqName + " in SEQUENCE_TABLE < max(" +
+                  tableKey + ") in " + tableName);
+            }
           }
+        }
       }
 
       System.out.println((isValid ? "Succeeded" :"Failed") + " in sequence number validation for SEQUENCE_TABLE.");
@@ -806,39 +808,9 @@ public class HiveSchemaTool {
     Matcher matcher                 = null;
     Pattern regexp                  = null;
     List<String> subs               = new ArrayList<String>();
-    int groupNo                     = 0;
+    int groupNo                     = 2;
 
-    switch (dbType) {
-      case HiveSchemaHelper.DB_ORACLE:
-        regexp = Pattern.compile("(CREATE TABLE(IF NOT EXISTS)*) (\\S+).*");
-        groupNo = 3;
-        break;
-
-      case HiveSchemaHelper.DB_MYSQL:
-        regexp = Pattern.compile("(CREATE TABLE) (\\S+).*");
-        groupNo = 2;
-        break;
-
-      case HiveSchemaHelper.DB_MSSQL:
-        regexp = Pattern.compile("(CREATE TABLE) (\\S+).*");
-        groupNo = 2;
-        break;
-
-      case HiveSchemaHelper.DB_DERBY:
-        regexp = Pattern.compile("(CREATE TABLE(IF NOT EXISTS)*) (\\S+).*");
-        groupNo = 3;
-        break;
-
-      case HiveSchemaHelper.DB_POSTGRACE:
-        regexp = Pattern.compile("(CREATE TABLE(IF NOT EXISTS)*) (\\S+).*");
-        groupNo = 3;
-        break;
-
-      default:
-        regexp = Pattern.compile("(CREATE TABLE(IF NOT EXISTS)*) (\\S+).*");
-        groupNo = 3;
-        break;
-    }
+    regexp = Pattern.compile("CREATE TABLE(\\s+IF NOT EXISTS)?\\s+(\\S+).*");
 
     if (!(new File(path)).exists()) {
       throw new Exception(path + " does not exist. Potentially incorrect version in the metastore VERSION table");
@@ -867,7 +839,7 @@ public class HiveSchemaTool {
         if (matcher.find()) {
           String table = matcher.group(groupNo);
           if (dbType.equals("derby"))
-            table  = table.replaceAll("APP.","");
+            table  = table.replaceAll("APP\\.","");
           tableList.add(table.toLowerCase());
           LOG.debug("Found table " + table + " in the schema");
         }

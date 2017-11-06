@@ -832,6 +832,56 @@ class ThriftHiveMetastoreHandler : virtual public ThriftHiveMetastoreIf {
     printf("get_metastore_db_uuid\n");
   }
 
+  void create_resource_plan(WMCreateResourcePlanResponse& _return, const WMCreateResourcePlanRequest& request) {
+    // Your implementation goes here
+    printf("create_resource_plan\n");
+  }
+
+  void get_resource_plan(WMGetResourcePlanResponse& _return, const WMGetResourcePlanRequest& request) {
+    // Your implementation goes here
+    printf("get_resource_plan\n");
+  }
+
+  void get_all_resource_plans(WMGetAllResourcePlanResponse& _return, const WMGetAllResourcePlanRequest& request) {
+    // Your implementation goes here
+    printf("get_all_resource_plans\n");
+  }
+
+  void alter_resource_plan(WMAlterResourcePlanResponse& _return, const WMAlterResourcePlanRequest& request) {
+    // Your implementation goes here
+    printf("alter_resource_plan\n");
+  }
+
+  void validate_resource_plan(WMValidateResourcePlanResponse& _return, const WMValidateResourcePlanRequest& request) {
+    // Your implementation goes here
+    printf("validate_resource_plan\n");
+  }
+
+  void drop_resource_plan(WMDropResourcePlanResponse& _return, const WMDropResourcePlanRequest& request) {
+    // Your implementation goes here
+    printf("drop_resource_plan\n");
+  }
+
+  void create_wm_trigger(WMCreateTriggerResponse& _return, const WMCreateTriggerRequest& request) {
+    // Your implementation goes here
+    printf("create_wm_trigger\n");
+  }
+
+  void alter_wm_trigger(WMAlterTriggerResponse& _return, const WMAlterTriggerRequest& request) {
+    // Your implementation goes here
+    printf("alter_wm_trigger\n");
+  }
+
+  void drop_wm_trigger(WMDropTriggerResponse& _return, const WMDropTriggerRequest& request) {
+    // Your implementation goes here
+    printf("drop_wm_trigger\n");
+  }
+
+  void get_triggers_for_resourceplan(WMGetTriggersForResourePlanResponse& _return, const WMGetTriggersForResourePlanRequest& request) {
+    // Your implementation goes here
+    printf("get_triggers_for_resourceplan\n");
+  }
+
 };
 
 int main(int argc, char **argv) {

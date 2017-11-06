@@ -19,6 +19,7 @@
 package org.apache.hadoop.hive.conf;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -76,7 +77,7 @@ public class HiveConf extends Configuration {
   protected String hiveJar;
   protected Properties origProp;
   protected String auxJars;
-  private static final Logger l4j = LoggerFactory.getLogger(HiveConf.class);
+  private static final Logger LOG = LoggerFactory.getLogger(HiveConf.class);
   private static boolean loadMetastoreConfig = false;
   private static boolean loadHiveServer2Config = false;
   private static URL hiveDefaultURL = null;
@@ -170,9 +171,7 @@ public class HiveConf extends Configuration {
             URL sourceUrl = HiveConf.class.getProtectionDomain().getCodeSource().getLocation();
             jarUri = sourceUrl.getProtocol().equalsIgnoreCase("jar") ? new URI(sourceUrl.getPath()) : sourceUrl.toURI();
           } catch (Throwable e) {
-            if (l4j.isInfoEnabled()) {
-              l4j.info("Cannot get jar URI", e);
-            }
+            LOG.info("Cannot get jar URI", e);
             System.err.println("Cannot get jar URI: " + e.getMessage());
           }
           // From the jar file, the parent is /lib folder
@@ -183,8 +182,8 @@ public class HiveConf extends Configuration {
         }
       }
     }
-    if (doLog && l4j.isInfoEnabled()) {
-      l4j.info("Found configuration file " + result);
+    if (doLog)  {
+      LOG.info("Found configuration file {}", result);
     }
     return result;
   }
@@ -193,9 +192,7 @@ public class HiveConf extends Configuration {
     try {
       return (f.exists() && f.isFile()) ? f.toURI().toURL() : null;
     } catch (Throwable e) {
-      if (l4j.isInfoEnabled()) {
-        l4j.info("Error looking for config " + f, e);
-      }
+      LOG.info("Error looking for config {}", f, e);
       System.err.println("Error looking for config " + f + ": " + e.getMessage());
       return null;
     }
@@ -302,7 +299,8 @@ public class HiveConf extends Configuration {
       HiveConf.ConfVars.METASTORE_TRY_DIRECT_SQL_DDL,
       HiveConf.ConfVars.METASTORE_CLIENT_SOCKET_TIMEOUT,
       HiveConf.ConfVars.METASTORE_PARTITION_NAME_WHITELIST_PATTERN,
-      HiveConf.ConfVars.METASTORE_CAPABILITY_CHECK
+      HiveConf.ConfVars.METASTORE_CAPABILITY_CHECK,
+      HiveConf.ConfVars.METASTORE_DISALLOW_INCOMPATIBLE_COL_TYPE_CHANGES
   };
 
   static {
@@ -790,7 +788,7 @@ public class HiveConf extends Configuration {
     NOTIFICATION_SEQUENCE_LOCK_MAX_RETRIES("hive.notification.sequence.lock.max.retries", 5,
         "Number of retries required to acquire a lock when getting the next notification sequential ID for entries "
             + "in the NOTIFICATION_LOG table."),
-    NOTIFICATION_SEQUENCE_LOCK_RETRY_SLEEP_INTERVAL("hive.notification.sequence.lock.retry.sleep.interval", 500,
+    NOTIFICATION_SEQUENCE_LOCK_RETRY_SLEEP_INTERVAL("hive.notification.sequence.lock.retry.sleep.interval", 500L,
         new TimeValidator(TimeUnit.MILLISECONDS),
         "Sleep interval between retries to acquire a notification lock as described part of property "
             + NOTIFICATION_SEQUENCE_LOCK_MAX_RETRIES.name()),
@@ -1029,6 +1027,8 @@ public class HiveConf extends Configuration {
     HIVEADDEDFILES("hive.added.files.path", "", "This an internal parameter."),
     HIVEADDEDJARS("hive.added.jars.path", "", "This an internal parameter."),
     HIVEADDEDARCHIVES("hive.added.archives.path", "", "This an internal parameter."),
+    HIVEADDFILESUSEHDFSLOCATION("hive.resource.use.hdfs.location", true, "Reference HDFS based files/jars directly instead of "
+        + "copy to session based HDFS scratch directory, to make distributed cache more useful."),
 
     HIVE_CURRENT_DATABASE("hive.current.database", "", "Database name used by current session. Internal usage only.", true),
 
@@ -1230,6 +1230,12 @@ public class HiveConf extends Configuration {
         "org.apache.hadoop.hive.serde2.lazybinary.LazyBinarySerDe",
         "SerDes retrieving schema from metastore. This is an internal parameter."),
 
+    @Deprecated
+    HIVE_LEGACY_SCHEMA_FOR_ALL_SERDES("hive.legacy.schema.for.all.serdes",
+        false,
+        "A backward compatibility setting for external metastore users that do not handle \n" +
+        SERDESUSINGMETASTOREFORSCHEMA.varname + " correctly. This may be removed at any time."),
+
     HIVEHISTORYFILELOC("hive.querylog.location",
         "${system:java.io.tmpdir}" + File.separator + "${system:user.name}",
         "Location of Hive run time structured log file"),
@@ -1292,6 +1298,8 @@ public class HiveConf extends Configuration {
     HIVETESTMODE("hive.test.mode", false,
         "Whether Hive is running in test mode. If yes, it turns on sampling and prefixes the output tablename.",
         false),
+    HIVEEXIMTESTMODE("hive.exim.test.mode", false,
+        "The subset of test mode that only enables custom path handling for ExIm.", false),
     HIVETESTMODEPREFIX("hive.test.mode.prefix", "test_",
         "In test mode, specfies prefixes for the output table", false),
     HIVETESTMODESAMPLEFREQ("hive.test.mode.samplefreq", 32,
@@ -1389,6 +1397,9 @@ public class HiveConf extends Configuration {
         "references for the cached object. Setting this to true can help avoid out of memory\n" +
         "issues under memory pressure (in some cases) at the cost of slight unpredictability in\n" +
         "overall query performance."),
+    HIVE_IO_SARG_CACHE_MAX_WEIGHT_MB("hive.io.sarg.cache.max.weight.mb", 10,
+        "The max weight allowed for the SearchArgument Cache. By default, the cache allows a max-weight of 10MB, " +
+        "after which entries will be evicted."),
 
     HIVE_LAZYSIMPLE_EXTENDED_BOOLEAN_LITERAL("hive.lazysimple.extended_boolean_literal", false,
         "LazySimpleSerde uses this property to determine if it treats 'T', 't', 'F', 'f',\n" +
@@ -1500,7 +1511,8 @@ public class HiveConf extends Configuration {
         "Whether to grant access to the hs2/hive user for queries"),
     HIVEQUERYNAME ("hive.query.name", null,
         "This named is used by Tez to set the dag name. This name in turn will appear on \n" +
-        "the Tez UI representing the work that was done."),
+        "the Tez UI representing the work that was done. Used by Spark to set the query name, will show up in the\n" +
+        "Spark UI."),
 
     HIVEOPTIMIZEBUCKETINGSORTING("hive.optimize.bucketingsorting", true,
         "Don't create a reducer for enforcing \n" +
@@ -1720,7 +1732,7 @@ public class HiveConf extends Configuration {
         "analyze table T compute statistics for columns. Queries like these should compute partition"
         + "level stats for partitioned table even when no part spec is specified."),
     HIVE_STATS_GATHER_NUM_THREADS("hive.stats.gather.num.threads", 10,
-        "Number of threads used by partialscan/noscan analyze command for partitioned tables.\n" +
+        "Number of threads used by noscan analyze command for partitioned tables.\n" +
         "This is applicable only for file formats that implement StatsProvidingRecordReader (like ORC)."),
     // Collect table access keys information for operators that can benefit from bucketing
     HIVE_STATS_COLLECT_TABLEKEYS("hive.stats.collect.tablekeys", false,
@@ -1768,15 +1780,6 @@ public class HiveConf extends Configuration {
         "Average row size is computed from average column size of all columns in the row. In the absence\n" +
         "of column statistics and for variable length complex columns like map, the average number of\n" +
         "entries/values can be specified using this config."),
-    // statistics annotation fetches stats for each partition, which can be expensive. turning
-    // this off will result in basic sizes being fetched from namenode instead
-    HIVE_STATS_FETCH_PARTITION_STATS("hive.stats.fetch.partition.stats", true,
-        "Annotation of operator tree with statistics information requires partition level basic\n" +
-        "statistics like number of rows, data size and file size. Partition statistics are fetched from\n" +
-        "metastore. Fetching partition statistics for each needed partition can be expensive when the\n" +
-        "number of partitions is high. This flag can be used to disable fetching of partition statistics\n" +
-        "from metastore. When this flag is disabled, Hive will make calls to filesystem to get file sizes\n" +
-        "and will estimate the number of rows from row schema."),
     // statistics annotation fetches column statistics for all required columns which can
     // be very expensive sometimes
     HIVE_STATS_FETCH_COLUMN_STATS("hive.stats.fetch.column.stats", false,
@@ -1883,7 +1886,9 @@ public class HiveConf extends Configuration {
         "hive.lock.numretries and hive.lock.sleep.between.retries."),
 
     HIVE_TXN_OPERATIONAL_PROPERTIES("hive.txn.operational.properties", 1,
-        "This is intended to be used as an internal property for future versions of ACID. (See\n" +
+      "1: Enable split-update feature found in the newer version of Hive ACID subsystem\n" +
+      "4: Make the table 'quarter-acid' as it only supports insert. But it doesn't require ORC or bucketing.\n" +
+      "This is intended to be used as an internal property for future versions of ACID. (See\n" +
         "HIVE-14035 for details.)"),
 
     HIVE_MAX_OPEN_TXNS("hive.max.open.txns", 100000, "Maximum number of open transactions. If \n" +
@@ -2010,13 +2015,6 @@ public class HiveConf extends Configuration {
     HIVE_DRUID_COORDINATOR_DEFAULT_ADDRESS("hive.druid.coordinator.address.default", "localhost:8081",
             "Address of the Druid coordinator. It is used to check the load status of newly created segments"
     ),
-    HIVE_DRUID_SELECT_DISTRIBUTE("hive.druid.select.distribute", true,
-        "If it is set to true, we distribute the execution of Druid Select queries. Concretely, we retrieve\n" +
-        "the result for Select queries directly from the Druid nodes containing the segments data.\n" +
-        "In particular, first we contact the Druid broker node to obtain the nodes containing the segments\n" +
-        "for the given query, and then we contact those nodes to retrieve the results for the query.\n" +
-        "If it is set to false, we do not execute the Select queries in a distributed fashion. Instead, results\n" +
-        "for those queries are returned by the Druid broker node."),
     HIVE_DRUID_SELECT_THRESHOLD("hive.druid.select.threshold", 10000,
         "Takes only effect when hive.druid.select.distribute is set to false. \n" +
         "When we can split a Select query, this is the maximum number of rows that we try to retrieve\n" +
@@ -2171,17 +2169,18 @@ public class HiveConf extends Configuration {
     // whose constructor would not have been called
     HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST(
         "hive.security.authorization.sqlstd.confwhitelist", "",
-        "List of comma separated Java regexes. Configurations parameters that match these\n" +
-        "regexes can be modified by user when SQL standard authorization is enabled.\n" +
+        "A Java regex. Configurations parameters that match this\n" +
+        "regex can be modified by user when SQL standard authorization is enabled.\n" +
         "To get the default value, use the 'set <param>' command.\n" +
         "Note that the hive.conf.restricted.list checks are still enforced after the white list\n" +
         "check"),
 
     HIVE_AUTHORIZATION_SQL_STD_AUTH_CONFIG_WHITELIST_APPEND(
         "hive.security.authorization.sqlstd.confwhitelist.append", "",
-        "List of comma separated Java regexes, to be appended to list set in\n" +
-        "hive.security.authorization.sqlstd.confwhitelist. Using this list instead\n" +
-        "of updating the original list means that you can append to the defaults\n" +
+        "2nd Java regex that it would match in addition to\n" +
+        "hive.security.authorization.sqlstd.confwhitelist.\n" +
+        "Do not include a starting \"|\" in the value. Using this regex instead\n" +
+        "of updating the original regex means that you can append to the default\n" +
         "set by SQL standard authorization instead of replacing it entirely."),
 
     HIVE_CLI_PRINT_HEADER("hive.cli.print.header", false, "Whether to print the names of the columns in query output."),
@@ -2406,6 +2405,9 @@ public class HiveConf extends Configuration {
     HIVE_SERVER2_TEZ_INTERACTIVE_QUEUE("hive.server2.tez.interactive.queue", "",
         "A single YARN queues to use for Hive Interactive sessions. When this is specified,\n" +
         "workload management is enabled and used for these sessions."),
+    HIVE_SERVER2_TEZ_WM_WORKER_THREADS("hive.server2.tez.wm.worker.threads", 4,
+        "Number of worker threads to use to perform the synchronous operations with Tez\n" +
+        "sessions for workload management (e.g. opening, closing, etc.)"),
     HIVE_SERVER2_TEZ_WM_AM_REGISTRY_TIMEOUT("hive.server2.tez.wm.am.registry.timeout", "30s",
         new TimeValidator(TimeUnit.SECONDS),
         "The timeout for AM registry registration, after which (on attempting to use the\n" +
@@ -2843,6 +2845,9 @@ public class HiveConf extends Configuration {
     HIVE_VECTORIZATION_USE_VECTORIZED_INPUT_FILE_FORMAT("hive.vectorized.use.vectorized.input.format", true,
         "This flag should be set to true to enable vectorizing with vectorized input file format capable SerDe.\n" +
         "The default value is true."),
+    HIVE_VECTORIZATION_VECTORIZED_INPUT_FILE_FORMAT_EXCLUDES("hive.vectorized.input.format.excludes","",
+        "This configuration should be set to fully described input format class names for which \n"
+            + " vectorized input format should not be used for vectorized execution."),
     HIVE_VECTORIZATION_USE_VECTOR_DESERIALIZE("hive.vectorized.use.vector.serde.deserialize", true,
         "This flag should be set to true to enable vectorizing rows using vector deserialize.\n" +
         "The default value is true."),
@@ -2859,9 +2864,17 @@ public class HiveConf extends Configuration {
         "1. chosen : use VectorUDFAdaptor for a small set of UDFs that were choosen for good performance\n" +
         "2. all    : use VectorUDFAdaptor for all UDFs"
     ),
-    HIVE_VECTORIZATION_PTF_ENABLED("hive.vectorized.execution.ptf.enabled", false,
+    HIVE_VECTORIZATION_PTF_ENABLED("hive.vectorized.execution.ptf.enabled", true,
         "This flag should be set to true to enable vectorized mode of the PTF of query execution.\n" +
-        "The default value is false."),
+        "The default value is true."),
+
+    HIVE_VECTORIZATION_PTF_MAX_MEMORY_BUFFERING_BATCH_COUNT("hive.vectorized.ptf.max.memory.buffering.batch.count", 25,
+        "Maximum number of vectorized row batches to buffer in memory for PTF\n" +
+        "The default value is 25"),
+    HIVE_VECTORIZATION_TESTING_REDUCER_BATCH_SIZE("hive.vectorized.testing.reducer.batch.size", -1,
+        "internal use only, used for creating small group key vectorized row batches to exercise more logic\n" +
+        "The default value is -1 which means don't restrict for testing",
+        true),
 
     HIVE_VECTORIZATION_COMPLEX_TYPES_ENABLED("hive.vectorized.complex.types.enabled", true,
         "This flag should be set to true to enable vectorization\n" +
@@ -2872,10 +2885,21 @@ public class HiveConf extends Configuration {
         "of aggregations that use complex types.\n",
         "For example, AVG uses a complex type (STRUCT) for partial aggregation results" +
         "The default value is true."),
-    HIVE_VECTORIZATION_ROW_IDENTIFIER_ENABLED("hive.vectorized.row.identifier.enabled", false,
-        "This flag should be set to true to enable vectorization\n" +
-        "of ROW__ID.\n" +
-        "The default value is false."),
+    HIVE_VECTORIZATION_ROW_IDENTIFIER_ENABLED("hive.vectorized.row.identifier.enabled", true,
+        "This flag should be set to true to enable vectorization of ROW__ID."),
+
+    HIVE_VECTORIZED_INPUT_FORMAT_SUPPORTS_ENABLED(
+        "hive.vectorized.input.format.supports.enabled",
+        "decimal_64",
+        "Which vectorized input format support features are enabled for vectorization.\n" +
+        "That is, if a VectorizedInputFormat input format does support \"decimal_64\" for example\n" +
+        "this variable must enable that to be used in vectorization"),
+
+    HIVE_TEST_VECTORIZATION_ENABLED_OVERRIDE("hive.test.vectorized.execution.enabled.override",
+        "none", new StringSet("none", "enable", "disable"),
+        "internal use only, used to override the hive.vectorized.execution.enabled setting and\n" +
+        "turn off vectorization.  The default is false, or course",
+        true),
 
     HIVE_TYPE_CHECK_ON_INSERT("hive.typecheck.on.insert", true, "This property has been extended to control "
         + "whether to check, convert, and normalize partition value to conform to its column type in "
@@ -2913,6 +2937,9 @@ public class HiveConf extends Configuration {
         + "When it is set to false, only [a-zA-Z_0-9]+ are supported.\n"
         + "The only supported special character right now is '/'. This flag applies only to quoted table names.\n"
         + "The default value is true."),
+    HIVE_CREATE_TABLES_AS_INSERT_ONLY("hive.create.as.insert.only", false,
+        "Whether the eligible tables should be created as ACID insert-only by default. Does \n" +
+        "not apply to external tables, the ones using storage handlers, etc."),
     // role names are case-insensitive
     USERS_IN_ADMIN_ROLE("hive.users.in.admin.role", "", false,
         "Comma separated list of users who are in admin role for bootstrapping.\n" +
@@ -2979,6 +3006,10 @@ public class HiveConf extends Configuration {
             "Only perform semijoin optimization if the estimated benefit at or above this fraction of the target table"),
     TEZ_DYNAMIC_SEMIJOIN_REDUCTION_FOR_MAPJOIN("hive.tez.dynamic.semijoin.reduction.for.mapjoin", false,
             "Use a semi-join branch for map-joins. This may not make it faster, but is helpful in certain join patterns."),
+    TEZ_DYNAMIC_SEMIJOIN_REDUCTION_FOR_DPP_FACTOR("hive.tez.dynamic.semijoin.reduction.for.dpp.factor",
+            (float) 1.0,
+            "The factor to decide if semijoin branch feeds into a TableScan\n" +
+            "which has an outgoing Dynamic Partition Pruning (DPP) branch based on number of distinct values."),
     TEZ_SMB_NUMBER_WAVES(
         "hive.tez.smb.number.waves",
         (float) 0.5,
@@ -3006,6 +3037,8 @@ public class HiveConf extends Configuration {
         0.5f, "The maximum fraction of JVM memory which Tez will reserve for the processor"),
     TEZ_TASK_SCALE_MEMORY_RESERVE_FRACTION("hive.tez.task.scale.memory.reserve.fraction",
         -1f, "The customized fraction of JVM memory which Tez will reserve for the processor"),
+    TEZ_CARTESIAN_PRODUCT_EDGE_ENABLED("hive.tez.cartesian-product.enabled",
+        false, "Use Tez cartesian product edge to speed up cross product"),
     // The default is different on the client and server, so it's null here.
     LLAP_IO_ENABLED("hive.llap.io.enabled", null, "Whether the LLAP IO layer is enabled."),
     LLAP_IO_TRACE_SIZE("hive.llap.io.trace.size", "2Mb",
@@ -3396,6 +3429,12 @@ public class HiveConf extends Configuration {
             Constants.LLAP_LOGGER_NAME_CONSOLE),
         "logger used for llap-daemons."),
 
+    HIVE_TRIGGER_VALIDATION_INTERVAL_MS("hive.trigger.validation.interval.ms", "500ms",
+      new TimeValidator(TimeUnit.MILLISECONDS),
+      "Interval for validating triggers during execution of a query. Triggers defined in resource plan will get\n" +
+        "validated for all SQL operations after every defined interval (default: 500ms) and corresponding action\n" +
+        "defined in the trigger will be taken"),
+
     SPARK_USE_OP_STATS("hive.spark.use.op.stats", true,
         "Whether to use operator stats to determine reducer parallelism for Hive on Spark.\n" +
         "If this is false, Hive will use source table stats to determine reducer\n" +
@@ -3405,6 +3444,9 @@ public class HiveConf extends Configuration {
         "If this is set to true, mapjoin optimization in Hive/Spark will use statistics from\n" +
         "TableScan operators at the root of operator tree, instead of parent ReduceSink\n" +
         "operators of the Join operator."),
+    SPARK_OPTIMIZE_SHUFFLE_SERDE("hive.spark.optimize.shuffle.serde", false,
+        "If this is set to true, Hive on Spark will register custom serializers for data types\n" +
+        "in shuffle. This should result in less shuffled data."),
     SPARK_CLIENT_FUTURE_TIMEOUT("hive.spark.client.future.timeout",
       "60s", new TimeValidator(TimeUnit.SECONDS),
       "Timeout for requests from Hive client to remote Spark driver."),
@@ -3488,6 +3530,8 @@ public class HiveConf extends Configuration {
         "Log tracing id that can be used by upstream clients for tracking respective logs. " +
         "Truncated to " + LOG_PREFIX_LENGTH + " characters. Defaults to use auto-generated session id."),
 
+    HIVE_MM_AVOID_GLOBSTATUS_ON_S3("hive.mm.avoid.s3.globstatus", true,
+        "Whether to use listFiles (optimized on S3) instead of globStatus when on S3."),
 
     HIVE_CONF_RESTRICTED_LIST("hive.conf.restricted.list",
         "hive.security.authenticator.manager,hive.security.authorization.manager," +
@@ -3604,6 +3648,10 @@ public class HiveConf extends Configuration {
 
     ConfVars(String varname, Object defaultVal, Validator validator, String description) {
       this(varname, defaultVal, validator, description, true, false, null);
+    }
+
+    ConfVars(String varname, Object defaultVal, Validator validator, String description, boolean excluded) {
+      this(varname, defaultVal, validator, description, true, excluded, null);
     }
 
     ConfVars(String varname, Object defaultVal, Validator validator, String description,
@@ -3943,6 +3991,18 @@ public class HiveConf extends Configuration {
     return new String[] {value.substring(0, i), value.substring(i)};
   }
 
+  private static Set<String> daysSet = ImmutableSet.of("d", "D", "day", "DAY", "days", "DAYS");
+  private static Set<String> hoursSet = ImmutableSet.of("h", "H", "hour", "HOUR", "hours", "HOURS");
+  private static Set<String> minutesSet = ImmutableSet.of("m", "M", "min", "MIN", "mins", "MINS",
+    "minute", "MINUTE", "minutes", "MINUTES");
+  private static Set<String> secondsSet = ImmutableSet.of("s", "S", "sec", "SEC", "secs", "SECS",
+    "second", "SECOND", "seconds", "SECONDS");
+  private static Set<String> millisSet = ImmutableSet.of("ms", "MS", "msec", "MSEC", "msecs", "MSECS",
+    "millisecond", "MILLISECOND", "milliseconds", "MILLISECONDS");
+  private static Set<String> microsSet = ImmutableSet.of("us", "US", "usec", "USEC", "usecs", "USECS",
+    "microsecond", "MICROSECOND", "microseconds", "MICROSECONDS");
+  private static Set<String> nanosSet = ImmutableSet.of("ns", "NS", "nsec", "NSEC", "nsecs", "NSECS",
+    "nanosecond", "NANOSECOND", "nanoseconds", "NANOSECONDS");
   public static TimeUnit unitFor(String unit, TimeUnit defaultUnit) {
     unit = unit.trim().toLowerCase();
     if (unit.isEmpty() || unit.equals("l")) {
@@ -3950,19 +4010,19 @@ public class HiveConf extends Configuration {
         throw new IllegalArgumentException("Time unit is not specified");
       }
       return defaultUnit;
-    } else if (unit.equals("d") || unit.startsWith("day")) {
+    } else if (daysSet.contains(unit)) {
       return TimeUnit.DAYS;
-    } else if (unit.equals("h") || unit.startsWith("hour")) {
+    } else if (hoursSet.contains(unit)) {
       return TimeUnit.HOURS;
-    } else if (unit.equals("m") || unit.startsWith("min")) {
+    } else if (minutesSet.contains(unit)) {
       return TimeUnit.MINUTES;
-    } else if (unit.equals("s") || unit.startsWith("sec")) {
+    } else if (secondsSet.contains(unit)) {
       return TimeUnit.SECONDS;
-    } else if (unit.equals("ms") || unit.startsWith("msec")) {
+    } else if (millisSet.contains(unit)) {
       return TimeUnit.MILLISECONDS;
-    } else if (unit.equals("us") || unit.startsWith("usec")) {
+    } else if (microsSet.contains(unit)) {
       return TimeUnit.MICROSECONDS;
-    } else if (unit.equals("ns") || unit.startsWith("nsec")) {
+    } else if (nanosSet.contains(unit)) {
       return TimeUnit.NANOSECONDS;
     }
     throw new IllegalArgumentException("Invalid time unit " + unit);
@@ -4117,10 +4177,14 @@ public class HiveConf extends Configuration {
   public static String[] getTrimmedStringsVar(Configuration conf, ConfVars var) {
     assert (var.valClass == String.class) : var.varname;
     String[] result = conf.getTrimmedStrings(var.varname, (String[])null);
-    if (result != null) return result;
+    if (result != null) {
+      return result;
+    }
     if (var.altName != null) {
       result = conf.getTrimmedStrings(var.altName, (String[])null);
-      if (result != null) return result;
+      if (result != null) {
+        return result;
+      }
     }
     return org.apache.hadoop.util.StringUtils.getTrimmedStrings(var.defaultStrVal);
   }
@@ -4137,13 +4201,13 @@ public class HiveConf extends Configuration {
 
   public String getLogIdVar(String defaultValue) {
     String retval = getVar(ConfVars.HIVE_LOG_TRACE_ID);
-    if (retval.equals("")) {
-      l4j.info("Using the default value passed in for log id: " + defaultValue);
+    if (StringUtils.EMPTY.equals(retval)) {
+      LOG.info("Using the default value passed in for log id: {}", defaultValue);
       retval = defaultValue;
     }
     if (retval.length() > LOG_PREFIX_LENGTH) {
-      l4j.warn("The original log id prefix is " + retval + " has been truncated to "
-          + retval.substring(0, LOG_PREFIX_LENGTH - 1));
+      LOG.warn("The original log id prefix is {} has been truncated to {}", retval,
+          retval.substring(0, LOG_PREFIX_LENGTH - 1));
       retval = retval.substring(0, LOG_PREFIX_LENGTH - 1);
     }
     return retval;
@@ -4277,7 +4341,7 @@ public class HiveConf extends Configuration {
 
     if ((this.get("hive.metastore.ds.retry.attempts") != null) ||
       this.get("hive.metastore.ds.retry.interval") != null) {
-        l4j.warn("DEPRECATED: hive.metastore.ds.retry.* no longer has any effect.  " +
+        LOG.warn("DEPRECATED: hive.metastore.ds.retry.* no longer has any effect.  " +
         "Use hive.hmshandler.retry.* instead");
     }
 
@@ -4310,9 +4374,9 @@ public class HiveConf extends Configuration {
           }
         }
         if (var == null) {
-          l4j.warn("HiveConf of name " + key + " does not exist");
+          LOG.warn("HiveConf of name {} does not exist", key);
         } else if (!var.isType(entry.getValue())) {
-          l4j.warn("HiveConf " + var.varname + " expects " + var.typeString() + " type value");
+          LOG.warn("HiveConf {} expects {} type value", var.varname, var.typeString());
         }
       }
       for (String key : trimmed) {
@@ -4512,7 +4576,7 @@ public class HiveConf extends Configuration {
     "distcp\\.options\\.overwrite",
     "distcp\\.options\\.strategy",
     "distcp\\.options\\.i",
-    "distcp\\.options\\.p",
+    "distcp\\.options\\.p.*",
     "distcp\\.options\\.update",
     "distcp\\.options\\.delete",
     "mapred\\.map\\..*",
@@ -4820,9 +4884,11 @@ public class HiveConf extends Configuration {
   }
 
   public static String getNonMrEngines() {
-    String result = "";
+    String result = StringUtils.EMPTY;
     for (String s : ConfVars.HIVE_EXECUTION_ENGINE.getValidStringValues()) {
-      if ("mr".equals(s)) continue;
+      if ("mr".equals(s)) {
+        continue;
+      }
       if (!result.isEmpty()) {
         result += ", ";
       }
@@ -4843,7 +4909,9 @@ public class HiveConf extends Configuration {
   public static HashMap<String, ConfVars> getOrCreateReverseMap() {
     // This should be called rarely enough; for now it's ok to just lock every time.
     synchronized (reverseMapLock) {
-      if (reverseMap != null) return reverseMap;
+      if (reverseMap != null) {
+        return reverseMap;
+      }
     }
     HashMap<String, ConfVars> vars = new HashMap<>();
     for (ConfVars val : ConfVars.values()) {
@@ -4853,7 +4921,9 @@ public class HiveConf extends Configuration {
       }
     }
     synchronized (reverseMapLock) {
-      if (reverseMap != null) return reverseMap;
+      if (reverseMap != null) {
+        return reverseMap;
+      }
       reverseMap = vars;
       return reverseMap;
     }

@@ -55,6 +55,7 @@ import org.apache.hadoop.hive.common.JavaUtils;
 import org.apache.hadoop.hive.common.log.ProgressMonitor;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
+import org.apache.hadoop.hive.conf.HiveConfUtil;
 import org.apache.hadoop.hive.metastore.ObjectStore;
 import org.apache.hadoop.hive.metastore.api.ColumnStatisticsObj;
 import org.apache.hadoop.hive.metastore.cache.CachedStore;
@@ -1448,7 +1449,7 @@ public class SessionState {
         String key;
 
         //get the local path of downloaded jars.
-        List<URI> downloadedURLs = resolveAndDownload(value, convertToUnix);
+        List<URI> downloadedURLs = resolveAndDownload(t, value, convertToUnix);
 
         if (ResourceDownloader.isIvyUri(value)) {
           // get the key to store in map
@@ -1494,9 +1495,14 @@ public class SessionState {
   }
 
   @VisibleForTesting
-  protected List<URI> resolveAndDownload(String value, boolean convertToUnix)
+  protected List<URI> resolveAndDownload(ResourceType resourceType, String value, boolean convertToUnix)
       throws URISyntaxException, IOException {
-    return resourceDownloader.resolveAndDownload(value, convertToUnix);
+    List<URI> uris = resourceDownloader.resolveAndDownload(value, convertToUnix);
+    if (ResourceDownloader.isHdfsUri(value)) {
+      assert uris.size() == 1 : "There should only be one URI localized-resource.";
+      resourceMaps.getLocalHdfsLocationMap(resourceType).put(uris.get(0).toString(), value);
+    }
+    return uris;
   }
 
   public void delete_resources(ResourceType t, List<String> values) {
@@ -1514,12 +1520,18 @@ public class SessionState {
         if (ResourceDownloader.isIvyUri(value)) {
           key = ResourceDownloader.createURI(value).getAuthority();
         }
+        else if (ResourceDownloader.isHdfsUri(value)) {
+          String removedKey = removeHdfsFilesFromMapping(t, value);
+          // remove local copy of HDFS location from resource map.
+          if (removedKey != null) {
+            key = removedKey;
+          }
+        }
       } catch (URISyntaxException e) {
         throw new RuntimeException("Invalid uri string " + value + ", " + e.getMessage());
       }
 
       // get all the dependencies to delete
-
       Set<String> resourcePaths = resourcePathMap.get(key);
       if (resourcePaths == null) {
         return;
@@ -1539,7 +1551,6 @@ public class SessionState {
     resources.removeAll(deleteList);
   }
 
-
   public Set<String> list_resource(ResourceType t, List<String> filter) {
     Set<String> orig = resourceMaps.getResourceSet(t);
     if (orig == null) {
@@ -1558,11 +1569,53 @@ public class SessionState {
     }
   }
 
+  private String removeHdfsFilesFromMapping(ResourceType t, String file){
+    String key = null;
+    if (resourceMaps.getLocalHdfsLocationMap(t).containsValue(file)){
+      for (Map.Entry<String, String> entry : resourceMaps.getLocalHdfsLocationMap(t).entrySet()){
+        if (entry.getValue().equals(file)){
+          key = entry.getKey();
+          resourceMaps.getLocalHdfsLocationMap(t).remove(key);
+        }
+      }
+    }
+    return key;
+  }
+
+  public Set<String> list_local_resource(ResourceType type) {
+    Set<String> resources = new HashSet<String>(list_resource(type, null));
+    Set<String> set = resourceMaps.getResourceSet(type);
+    for (String file : set){
+      if (resourceMaps.getLocalHdfsLocationMap(ResourceType.FILE).containsKey(file)){
+        resources.remove(file);
+      }
+      if (resourceMaps.getLocalHdfsLocationMap(ResourceType.JAR).containsKey(file)){
+        resources.remove(file);
+      }
+    }
+    return resources;
+  }
+
+  public Set<String> list_hdfs_resource(ResourceType type) {
+    Set<String> set = resourceMaps.getResourceSet(type);
+    Set<String> result = new HashSet<String>();
+    for (String file : set){
+      if (resourceMaps.getLocalHdfsLocationMap(ResourceType.FILE).containsKey(file)){
+        result.add(resourceMaps.getLocalHdfsLocationMap(ResourceType.FILE).get(file));
+      }
+      if (resourceMaps.getLocalHdfsLocationMap(ResourceType.JAR).containsKey(file)){
+        result.add(resourceMaps.getLocalHdfsLocationMap(ResourceType.JAR).get(file));
+      }
+    }
+    return result;
+  }
+
   public void delete_resources(ResourceType t) {
     Set<String> resources = resourceMaps.getResourceSet(t);
     if (resources != null && !resources.isEmpty()) {
       delete_resources(t, new ArrayList<String>(resources));
       resourceMaps.getResourceMap().remove(t);
+      resourceMaps.getAllLocalHdfsLocationMap().remove(t);
     }
   }
 
@@ -1702,12 +1755,15 @@ public class SessionState {
 
   private void unCacheDataNucleusClassLoaders() {
     try {
-      Hive threadLocalHive = Hive.get(sessionConf);
-      if ((threadLocalHive != null) && (threadLocalHive.getMSC() != null)
-          && (threadLocalHive.getMSC().isLocalMetaStore())) {
-        if (sessionConf.getVar(ConfVars.METASTORE_RAW_STORE_IMPL).equals(ObjectStore.class.getName())
-            || sessionConf.getVar(ConfVars.METASTORE_RAW_STORE_IMPL).equals(CachedStore.class.getName()) &&
-            sessionConf.getVar(ConfVars.METASTORE_CACHED_RAW_STORE_IMPL).equals(ObjectStore.class.getName())) {
+      boolean isLocalMetastore =
+          HiveConfUtil.isEmbeddedMetaStore(sessionConf.getVar(HiveConf.ConfVars.METASTOREURIS));
+      if (isLocalMetastore) {
+        if (sessionConf.getVar(ConfVars.METASTORE_RAW_STORE_IMPL)
+            .equals(ObjectStore.class.getName()) ||
+            sessionConf.getVar(ConfVars.METASTORE_RAW_STORE_IMPL)
+                .equals(CachedStore.class.getName()) && sessionConf
+                .getVar(ConfVars.METASTORE_CACHED_RAW_STORE_IMPL)
+                .equals(ObjectStore.class.getName())) {
           ObjectStore.unCacheDataNucleusClassLoaders();
         }
       }
@@ -1778,12 +1834,14 @@ public class SessionState {
     if (tezSessionState == session) return; // The same object.
     if (tezSessionState != null) {
       tezSessionState.markFree();
+      tezSessionState.setKillQuery(null);
       tezSessionState = null;
     }
+    tezSessionState = session;
     if (session != null) {
       session.markInUse();
+      tezSessionState.setKillQuery(getKillQuery());
     }
-    tezSessionState = session;
   }
 
   public String getUserName() {
@@ -1951,16 +2009,22 @@ class ResourceMaps {
   private final Map<SessionState.ResourceType, Map<String, Set<String>>> resource_path_map;
   // stores all the downloaded resources as key and the jars which depend on these resources as values in form of a list. Used for deleting transitive dependencies.
   private final Map<SessionState.ResourceType, Map<String, Set<String>>> reverse_resource_path_map;
+  // stores mappings from local to hdfs location for all resource types.
+  private final Map<SessionState.ResourceType, Map<String, String>> local_hdfs_resource_map;
 
   public ResourceMaps() {
     resource_map = new HashMap<SessionState.ResourceType, Set<String>>();
     resource_path_map = new HashMap<SessionState.ResourceType, Map<String, Set<String>>>();
     reverse_resource_path_map = new HashMap<SessionState.ResourceType, Map<String, Set<String>>>();
-
+    local_hdfs_resource_map = new HashMap<SessionState.ResourceType, Map<String, String>>();
   }
 
   public Map<SessionState.ResourceType, Set<String>> getResourceMap() {
     return resource_map;
+  }
+
+  public Map<SessionState.ResourceType, Map<String, String>> getAllLocalHdfsLocationMap() {
+    return local_hdfs_resource_map;
   }
 
   public Set<String> getResourceSet(SessionState.ResourceType t) {
@@ -1986,6 +2050,15 @@ class ResourceMaps {
     if (result == null) {
       result = new HashMap<String, Set<String>>();
       reverse_resource_path_map.put(t, result);
+    }
+    return result;
+  }
+
+  public Map<String, String> getLocalHdfsLocationMap(SessionState.ResourceType type){
+    Map<String, String> result = local_hdfs_resource_map.get(type);
+    if (result == null) {
+      result = new HashMap<String, String>();
+      local_hdfs_resource_map.put(type, result);
     }
     return result;
   }

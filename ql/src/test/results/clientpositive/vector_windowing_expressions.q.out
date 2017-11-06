@@ -76,7 +76,8 @@ STAGE PLANS:
             Statistics: Num rows: 26 Data size: 3147 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumns: [p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string]
             Reduce Output Operator
               key expressions: p_mfgr (type: string), p_retailprice (type: double)
               sort order: ++
@@ -92,7 +93,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -102,6 +104,7 @@ STAGE PLANS:
               includeColumns: [2, 5, 7]
               dataColumns: p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -255,7 +258,8 @@ STAGE PLANS:
             Statistics: Num rows: 26 Data size: 3147 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumns: [p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string]
             Reduce Output Operator
               key expressions: p_mfgr (type: string), p_retailprice (type: double)
               sort order: ++
@@ -271,7 +275,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -281,6 +286,7 @@ STAGE PLANS:
               includeColumns: [2, 5, 7]
               dataColumns: p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -402,7 +408,8 @@ STAGE PLANS:
             Statistics: Num rows: 1 Data size: 1017544 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumns: [t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary]
             Reduce Output Operator
               key expressions: t (type: tinyint), bo (type: boolean), s (type: string), si (type: smallint), f (type: float)
               sort order: ++++-
@@ -417,7 +424,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -425,8 +433,9 @@ STAGE PLANS:
           rowBatchContext:
               dataColumnCount: 11
               includeColumns: [0, 1, 4, 6, 7]
-              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2), bin:binary
+              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -611,7 +620,8 @@ STAGE PLANS:
             Statistics: Num rows: 1 Data size: 1017544 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumns: [t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary]
             Reduce Output Operator
               key expressions: si (type: smallint), i (type: int), s (type: string)
               sort order: +++
@@ -626,7 +636,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -634,8 +645,9 @@ STAGE PLANS:
           rowBatchContext:
               dataColumnCount: 11
               includeColumns: [1, 2, 7]
-              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2), bin:binary
+              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -820,7 +832,8 @@ STAGE PLANS:
             Statistics: Num rows: 1 Data size: 1017544 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumns: [t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary]
             Reduce Output Operator
               key expressions: b (type: bigint), si (type: smallint), s (type: string), d (type: double)
               sort order: ++++
@@ -835,7 +848,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -843,8 +857,9 @@ STAGE PLANS:
           rowBatchContext:
               dataColumnCount: 11
               includeColumns: [1, 3, 5, 7]
-              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2), bin:binary
+              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -1029,7 +1044,8 @@ STAGE PLANS:
             Statistics: Num rows: 1 Data size: 1017544 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumns: [t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary]
             Reduce Output Operator
               key expressions: f (type: float), b (type: bigint)
               sort order: ++
@@ -1045,7 +1061,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -1053,8 +1070,9 @@ STAGE PLANS:
           rowBatchContext:
               dataColumnCount: 11
               includeColumns: [3, 4, 7]
-              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2), bin:binary
+              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -1239,7 +1257,8 @@ STAGE PLANS:
             Statistics: Num rows: 26 Data size: 3147 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumns: [p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string]
             Reduce Output Operator
               key expressions: p_mfgr (type: string), p_type (type: string)
               sort order: ++
@@ -1255,7 +1274,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -1265,6 +1285,7 @@ STAGE PLANS:
               includeColumns: [2, 4, 7]
               dataColumns: p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -1371,7 +1392,8 @@ STAGE PLANS:
             Statistics: Num rows: 26 Data size: 3147 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumns: [p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string]
             Reduce Output Operator
               key expressions: p_mfgr (type: string), p_type (type: string)
               sort order: ++
@@ -1387,7 +1409,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -1397,6 +1420,7 @@ STAGE PLANS:
               includeColumns: [2, 4, 7]
               dataColumns: p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -1522,7 +1546,8 @@ STAGE PLANS:
             Statistics: Num rows: 1 Data size: 1017544 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                projectedColumns: [t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary]
             Reduce Output Operator
               key expressions: ts (type: timestamp), i (type: int)
               sort order: ++
@@ -1538,7 +1563,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -1546,8 +1572,9 @@ STAGE PLANS:
           rowBatchContext:
               dataColumnCount: 11
               includeColumns: [2, 7, 8]
-              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2), bin:binary
+              dataColumns: t:tinyint, si:smallint, i:int, b:bigint, f:float, d:double, bo:boolean, s:string, ts:timestamp, dec:decimal(4,2)/DECIMAL_64, bin:binary
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -1703,7 +1730,8 @@ STAGE PLANS:
             Statistics: Num rows: 26 Data size: 3147 Basic stats: COMPLETE Column stats: NONE
             TableScan Vectorization:
                 native: true
-                projectedOutputColumns: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumnNums: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+                projectedColumns: [p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string]
             Reduce Output Operator
               key expressions: p_mfgr (type: string), p_retailprice (type: double)
               sort order: ++
@@ -1719,7 +1747,8 @@ STAGE PLANS:
       Map Vectorization:
           enabled: true
           enabledConditionsMet: hive.vectorized.use.vector.serde.deserialize IS true
-          groupByVectorOutput: true
+          inputFormatFeatureSupport: [DECIMAL_64]
+          featureSupportInUse: [DECIMAL_64]
           inputFileFormats: org.apache.hadoop.mapred.TextInputFormat
           allNative: false
           usesVectorUDFAdaptor: false
@@ -1729,6 +1758,7 @@ STAGE PLANS:
               includeColumns: [2, 5, 7]
               dataColumns: p_partkey:int, p_name:string, p_mfgr:string, p_brand:string, p_type:string, p_size:int, p_container:string, p_retailprice:double, p_comment:string
               partitionColumnCount: 0
+              scratchColumnTypeNames: []
       Reduce Vectorization:
           enabled: false
           enableConditionsMet: hive.vectorized.execution.reduce.enabled IS true
@@ -1792,6 +1822,229 @@ STAGE PLANS:
       Processor Tree:
         ListSink
 
+PREHOOK: query: select p_mfgr, p_retailprice, p_size,
+round(sum(p_retailprice) over w1 , 2) + 50.0 = round(sum(lag(p_retailprice,1,50.0)) over w1 + (last_value(p_retailprice) over w1),2)
+from part
+window w1 as (distribute by p_mfgr sort by p_retailprice)
+limit 11
+PREHOOK: type: QUERY
+PREHOOK: Input: default@part
+#### A masked pattern was here ####
+POSTHOOK: query: select p_mfgr, p_retailprice, p_size,
+round(sum(p_retailprice) over w1 , 2) + 50.0 = round(sum(lag(p_retailprice,1,50.0)) over w1 + (last_value(p_retailprice) over w1),2)
+from part
+window w1 as (distribute by p_mfgr sort by p_retailprice)
+limit 11
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@part
+#### A masked pattern was here ####
+p_mfgr	p_retailprice	p_size	_c3
+Manufacturer#1	1173.15	2	true
+Manufacturer#1	1173.15	2	true
+Manufacturer#1	1414.42	28	true
+Manufacturer#1	1602.59	6	true
+Manufacturer#1	1632.66	42	true
+Manufacturer#1	1753.76	34	true
+Manufacturer#2	1690.68	14	true
+Manufacturer#2	1698.66	25	true
+Manufacturer#2	1701.6	18	true
+Manufacturer#2	1800.7	40	true
+Manufacturer#2	2031.98	2	true
+PREHOOK: query: select p_mfgr, p_retailprice, p_size,
+round(sum(p_retailprice) over w1 , 2) = round(sum(lag(p_retailprice,1,0.0)) over w1 + last_value(p_retailprice) over w1 , 2), 
+max(p_retailprice) over w1 - min(p_retailprice) over w1 = last_value(p_retailprice) over w1 - first_value(p_retailprice) over w1
+from part
+window w1 as (distribute by p_mfgr sort by p_retailprice)
+PREHOOK: type: QUERY
+PREHOOK: Input: default@part
+#### A masked pattern was here ####
+POSTHOOK: query: select p_mfgr, p_retailprice, p_size,
+round(sum(p_retailprice) over w1 , 2) = round(sum(lag(p_retailprice,1,0.0)) over w1 + last_value(p_retailprice) over w1 , 2), 
+max(p_retailprice) over w1 - min(p_retailprice) over w1 = last_value(p_retailprice) over w1 - first_value(p_retailprice) over w1
+from part
+window w1 as (distribute by p_mfgr sort by p_retailprice)
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@part
+#### A masked pattern was here ####
+p_mfgr	p_retailprice	p_size	_c3	_c4
+Manufacturer#1	1173.15	2	true	true
+Manufacturer#1	1173.15	2	true	true
+Manufacturer#1	1414.42	28	true	true
+Manufacturer#1	1602.59	6	true	true
+Manufacturer#1	1632.66	42	true	true
+Manufacturer#1	1753.76	34	true	true
+Manufacturer#2	1690.68	14	true	true
+Manufacturer#2	1698.66	25	true	true
+Manufacturer#2	1701.6	18	true	true
+Manufacturer#2	1800.7	40	true	true
+Manufacturer#2	2031.98	2	true	true
+Manufacturer#3	1190.27	14	true	true
+Manufacturer#3	1337.29	45	true	true
+Manufacturer#3	1410.39	19	true	true
+Manufacturer#3	1671.68	17	true	true
+Manufacturer#3	1922.98	1	true	true
+Manufacturer#4	1206.26	27	true	true
+Manufacturer#4	1290.35	12	true	true
+Manufacturer#4	1375.42	39	true	true
+Manufacturer#4	1620.67	10	true	true
+Manufacturer#4	1844.92	7	true	true
+Manufacturer#5	1018.1	46	true	true
+Manufacturer#5	1464.48	23	true	true
+Manufacturer#5	1611.66	6	true	true
+Manufacturer#5	1788.73	2	true	true
+Manufacturer#5	1789.69	31	true	true
+PREHOOK: query: select p_mfgr, p_retailprice, p_size,
+rank() over (distribute by p_mfgr sort by p_retailprice) as r,
+sum(p_retailprice) over (distribute by p_mfgr sort by p_retailprice rows between unbounded preceding and current row) as s2,
+sum(p_retailprice) over (distribute by p_mfgr sort by p_retailprice rows between unbounded preceding and current row) -5 as s1
+from part
+PREHOOK: type: QUERY
+PREHOOK: Input: default@part
+#### A masked pattern was here ####
+POSTHOOK: query: select p_mfgr, p_retailprice, p_size,
+rank() over (distribute by p_mfgr sort by p_retailprice) as r,
+sum(p_retailprice) over (distribute by p_mfgr sort by p_retailprice rows between unbounded preceding and current row) as s2,
+sum(p_retailprice) over (distribute by p_mfgr sort by p_retailprice rows between unbounded preceding and current row) -5 as s1
+from part
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@part
+#### A masked pattern was here ####
+p_mfgr	p_retailprice	p_size	r	s2	s1
+Manufacturer#1	1173.15	2	1	1173.15	1168.15
+Manufacturer#1	1173.15	2	1	2346.3	2341.3
+Manufacturer#1	1414.42	28	3	3760.7200000000003	3755.7200000000003
+Manufacturer#1	1602.59	6	4	5363.31	5358.31
+Manufacturer#1	1632.66	42	5	6995.97	6990.97
+Manufacturer#1	1753.76	34	6	8749.73	8744.73
+Manufacturer#2	1690.68	14	1	1690.68	1685.68
+Manufacturer#2	1698.66	25	2	3389.34	3384.34
+Manufacturer#2	1701.6	18	3	5090.9400000000005	5085.9400000000005
+Manufacturer#2	1800.7	40	4	6891.64	6886.64
+Manufacturer#2	2031.98	2	5	8923.62	8918.62
+Manufacturer#3	1190.27	14	1	1190.27	1185.27
+Manufacturer#3	1337.29	45	2	2527.56	2522.56
+Manufacturer#3	1410.39	19	3	3937.95	3932.95
+Manufacturer#3	1671.68	17	4	5609.63	5604.63
+Manufacturer#3	1922.98	1	5	7532.610000000001	7527.610000000001
+Manufacturer#4	1206.26	27	1	1206.26	1201.26
+Manufacturer#4	1290.35	12	2	2496.6099999999997	2491.6099999999997
+Manufacturer#4	1375.42	39	3	3872.0299999999997	3867.0299999999997
+Manufacturer#4	1620.67	10	4	5492.7	5487.7
+Manufacturer#4	1844.92	7	5	7337.62	7332.62
+Manufacturer#5	1018.1	46	1	1018.1	1013.1
+Manufacturer#5	1464.48	23	2	2482.58	2477.58
+Manufacturer#5	1611.66	6	3	4094.24	4089.24
+Manufacturer#5	1788.73	2	4	5882.969999999999	5877.969999999999
+Manufacturer#5	1789.69	31	5	7672.66	7667.66
+PREHOOK: query: select p_mfgr, avg(p_retailprice) over(partition by p_mfgr, p_type order by p_mfgr) from part
+PREHOOK: type: QUERY
+PREHOOK: Input: default@part
+#### A masked pattern was here ####
+POSTHOOK: query: select p_mfgr, avg(p_retailprice) over(partition by p_mfgr, p_type order by p_mfgr) from part
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@part
+#### A masked pattern was here ####
+p_mfgr	avg_window_0
+Manufacturer#1	1753.76
+Manufacturer#1	1632.66
+Manufacturer#1	1602.59
+Manufacturer#1	1173.15
+Manufacturer#1	1173.15
+Manufacturer#1	1414.42
+Manufacturer#2	1800.7
+Manufacturer#2	1690.68
+Manufacturer#2	2031.98
+Manufacturer#2	1698.66
+Manufacturer#2	1701.6
+Manufacturer#3	1922.98
+Manufacturer#3	1410.39
+Manufacturer#3	1671.68
+Manufacturer#3	1190.27
+Manufacturer#3	1337.29
+Manufacturer#4	1844.92
+Manufacturer#4	1375.42
+Manufacturer#4	1620.67
+Manufacturer#4	1206.26
+Manufacturer#4	1290.35
+Manufacturer#5	1018.1
+Manufacturer#5	1464.48
+Manufacturer#5	1789.69
+Manufacturer#5	1788.73
+Manufacturer#5	1611.66
+PREHOOK: query: select p_mfgr, avg(p_retailprice) over(partition by p_mfgr order by p_type,p_mfgr rows between unbounded preceding and current row) from part
+PREHOOK: type: QUERY
+PREHOOK: Input: default@part
+#### A masked pattern was here ####
+POSTHOOK: query: select p_mfgr, avg(p_retailprice) over(partition by p_mfgr order by p_type,p_mfgr rows between unbounded preceding and current row) from part
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@part
+#### A masked pattern was here ####
+p_mfgr	avg_window_0
+Manufacturer#1	1753.76
+Manufacturer#1	1693.21
+Manufacturer#1	1663.0033333333333
+Manufacturer#1	1540.54
+Manufacturer#1	1467.062
+Manufacturer#1	1458.2883333333332
+Manufacturer#2	1800.7
+Manufacturer#2	1745.69
+Manufacturer#2	1841.1200000000001
+Manufacturer#2	1805.505
+Manufacturer#2	1784.7240000000002
+Manufacturer#3	1922.98
+Manufacturer#3	1666.685
+Manufacturer#3	1668.3500000000001
+Manufacturer#3	1548.83
+Manufacturer#3	1506.522
+Manufacturer#4	1844.92
+Manufacturer#4	1610.17
+Manufacturer#4	1613.67
+Manufacturer#4	1511.8175
+Manufacturer#4	1467.5240000000001
+Manufacturer#5	1018.1
+Manufacturer#5	1241.29
+Manufacturer#5	1424.0900000000001
+Manufacturer#5	1515.25
+Manufacturer#5	1534.532
+PREHOOK: query: from (select sum(i) over (partition by ts order by i), s from over10k) tt insert overwrite table t1 select * insert overwrite table t2 select *
+PREHOOK: type: QUERY
+PREHOOK: Input: default@over10k
+PREHOOK: Output: default@t1
+PREHOOK: Output: default@t2
+POSTHOOK: query: from (select sum(i) over (partition by ts order by i), s from over10k) tt insert overwrite table t1 select * insert overwrite table t2 select *
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@over10k
+POSTHOOK: Output: default@t1
+POSTHOOK: Output: default@t2
+POSTHOOK: Lineage: t1.a1 SCRIPT [(over10k)over10k.FieldSchema(name:t, type:tinyint, comment:null), (over10k)over10k.FieldSchema(name:si, type:smallint, comment:null), (over10k)over10k.FieldSchema(name:i, type:int, comment:null), (over10k)over10k.FieldSchema(name:b, type:bigint, comment:null), (over10k)over10k.FieldSchema(name:f, type:float, comment:null), (over10k)over10k.FieldSchema(name:d, type:double, comment:null), (over10k)over10k.FieldSchema(name:bo, type:boolean, comment:null), (over10k)over10k.FieldSchema(name:s, type:string, comment:null), (over10k)over10k.FieldSchema(name:ts, type:timestamp, comment:null), (over10k)over10k.FieldSchema(name:dec, type:decimal(4,2), comment:null), (over10k)over10k.FieldSchema(name:bin, type:binary, comment:null), ]
+POSTHOOK: Lineage: t1.b1 SIMPLE [(over10k)over10k.FieldSchema(name:s, type:string, comment:null), ]
+POSTHOOK: Lineage: t2.a1 SCRIPT [(over10k)over10k.FieldSchema(name:t, type:tinyint, comment:null), (over10k)over10k.FieldSchema(name:si, type:smallint, comment:null), (over10k)over10k.FieldSchema(name:i, type:int, comment:null), (over10k)over10k.FieldSchema(name:b, type:bigint, comment:null), (over10k)over10k.FieldSchema(name:f, type:float, comment:null), (over10k)over10k.FieldSchema(name:d, type:double, comment:null), (over10k)over10k.FieldSchema(name:bo, type:boolean, comment:null), (over10k)over10k.FieldSchema(name:s, type:string, comment:null), (over10k)over10k.FieldSchema(name:ts, type:timestamp, comment:null), (over10k)over10k.FieldSchema(name:dec, type:decimal(4,2), comment:null), (over10k)over10k.FieldSchema(name:bin, type:binary, comment:null), ]
+POSTHOOK: Lineage: t2.b1 SIMPLE [(over10k)over10k.FieldSchema(name:s, type:string, comment:null), ]
+_col0	_col1
+PREHOOK: query: select * from t1 limit 3
+PREHOOK: type: QUERY
+PREHOOK: Input: default@t1
+#### A masked pattern was here ####
+POSTHOOK: query: select * from t1 limit 3
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@t1
+#### A masked pattern was here ####
+t1.a1	t1.b1
+65542	rachel thompson
+131088	oscar brown
+262258	wendy steinbeck
+PREHOOK: query: select * from t2 limit 3
+PREHOOK: type: QUERY
+PREHOOK: Input: default@t2
+#### A masked pattern was here ####
+POSTHOOK: query: select * from t2 limit 3
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@t2
+#### A masked pattern was here ####
+t2.a1	t2.b1
+65542	rachel thompson
+131088	oscar brown
+262258	wendy steinbeck
 PREHOOK: query: select p_mfgr, p_retailprice, p_size,
 round(sum(p_retailprice) over w1 , 2) + 50.0 = round(sum(lag(p_retailprice,1,50.0)) over w1 + (last_value(p_retailprice) over w1),2)
 from part

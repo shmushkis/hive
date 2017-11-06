@@ -326,7 +326,7 @@ struct Table {
   12: string tableType,                // table type enum, e.g. EXTERNAL_TABLE
   13: optional PrincipalPrivilegeSet privileges,
   14: optional bool temporary=false,
-  15: optional bool rewriteEnabled     // rewrite enabled or not
+  15: optional bool rewriteEnabled,     // rewrite enabled or not
 }
 
 struct Partition {
@@ -985,7 +985,8 @@ struct GetAllFunctionsResponse {
 }
 
 enum ClientCapability {
-  TEST_CAPABILITY = 1
+  TEST_CAPABILITY = 1,
+  INSERT_ONLY_TABLES = 2
 }
 
 
@@ -1029,6 +1030,124 @@ struct TableMeta {
   3: required string tableType;
   4: optional string comments;
 }
+
+// Data types for workload management.
+
+enum WMResourcePlanStatus {
+  ACTIVE = 1,
+  ENABLED = 2,
+  DISABLED = 3
+}
+
+struct WMResourcePlan {
+  1: required string name;
+  2: optional WMResourcePlanStatus status;
+  3: optional i32 queryParallelism;
+}
+
+struct WMPool {
+  1: required string resourcePlanName;
+  2: required string poolName;
+  3: optional string parentPoolName;
+  4: optional double allocFraction;
+  5: optional i32 queryParallelism;
+  6: optional string schedulingPolicy;
+}
+
+struct WMTrigger {
+  1: required string resourcePlanName;
+  2: required string triggerName;
+  3: optional string triggerExpression;
+  4: optional string actionExpression;
+}
+
+struct WMMapping {
+  1: required string resourcePlanName;
+  2: required string entityType;
+  3: required string entityName;
+  4: optional string poolName;
+  5: optional i32 ordering;
+}
+
+// Request response for workload management API's.
+
+struct WMCreateResourcePlanRequest {
+  1: optional WMResourcePlan resourcePlan;
+}
+
+struct WMCreateResourcePlanResponse {
+}
+
+struct WMGetResourcePlanRequest {
+  1: optional string resourcePlanName;
+}
+
+struct WMGetResourcePlanResponse {
+  1: optional WMResourcePlan resourcePlan;
+}
+
+struct WMGetAllResourcePlanRequest {
+}
+
+struct WMGetAllResourcePlanResponse {
+  1: optional list<WMResourcePlan> resourcePlans;
+}
+
+struct WMAlterResourcePlanRequest {
+  1: optional string resourcePlanName;
+  2: optional WMResourcePlan resourcePlan;
+}
+
+struct WMAlterResourcePlanResponse {
+}
+
+struct WMValidateResourcePlanRequest {
+  1: optional string resourcePlanName;
+}
+
+struct WMValidateResourcePlanResponse {
+  1: optional bool isValid;
+}
+
+struct WMDropResourcePlanRequest {
+  1: optional string resourcePlanName;
+}
+
+struct WMDropResourcePlanResponse {
+}
+
+struct WMCreateTriggerRequest {
+  1: optional WMTrigger trigger;
+}
+
+struct WMCreateTriggerResponse {
+}
+
+struct WMAlterTriggerRequest {
+  1: optional WMTrigger trigger;
+}
+
+struct WMAlterTriggerResponse {
+}
+
+struct WMDropTriggerRequest {
+  1: optional string resourcePlanName;
+  2: optional string triggerName;
+}
+
+struct WMDropTriggerResponse {
+}
+
+struct WMGetTriggersForResourePlanRequest {
+  1: optional string resourcePlanName;
+}
+
+struct WMGetTriggersForResourePlanResponse {
+  1: optional list<WMTrigger> triggers;
+}
+
+
+// Exceptions.
 
 exception MetaException {
   1: string message
@@ -1592,6 +1711,37 @@ service ThriftHiveMetastore extends fb303.FacebookService
 
   // Metastore DB properties
   string get_metastore_db_uuid() throws (1:MetaException o1)
+
+  // Workload management API's
+  WMCreateResourcePlanResponse create_resource_plan(1:WMCreateResourcePlanRequest request)
+      throws(1:AlreadyExistsException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+
+  WMGetResourcePlanResponse get_resource_plan(1:WMGetResourcePlanRequest request)
+      throws(1:NoSuchObjectException o1, 2:MetaException o2)
+
+  WMGetAllResourcePlanResponse get_all_resource_plans(1:WMGetAllResourcePlanRequest request)
+      throws(1:MetaException o1)
+
+  WMAlterResourcePlanResponse alter_resource_plan(1:WMAlterResourcePlanRequest request)
+      throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+
+  WMValidateResourcePlanResponse validate_resource_plan(1:WMValidateResourcePlanRequest request)
+      throws(1:NoSuchObjectException o1, 2:MetaException o2)
+
+  WMDropResourcePlanResponse drop_resource_plan(1:WMDropResourcePlanRequest request)
+      throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+
+  WMCreateTriggerResponse create_wm_trigger(1:WMCreateTriggerRequest request)
+      throws(1:AlreadyExistsException o1, 2:NoSuchObjectException o2, 3:InvalidObjectException o3, 4:MetaException o4)
+
+  WMAlterTriggerResponse alter_wm_trigger(1:WMAlterTriggerRequest request)
+      throws(1:NoSuchObjectException o1, 2:InvalidObjectException o2, 3:MetaException o3)
+
+  WMDropTriggerResponse drop_wm_trigger(1:WMDropTriggerRequest request)
+      throws(1:NoSuchObjectException o1, 2:InvalidOperationException o2, 3:MetaException o3)
+
+  WMGetTriggersForResourePlanResponse get_triggers_for_resourceplan(1:WMGetTriggersForResourePlanRequest request)
+      throws(1:NoSuchObjectException o1, 2:MetaException o2)
 }
 
 // * Note about the DDL_TIME: When creating or altering a table or a partition,

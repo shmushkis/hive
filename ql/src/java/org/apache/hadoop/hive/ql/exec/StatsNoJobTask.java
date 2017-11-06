@@ -64,7 +64,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * StatsNoJobTask is used in cases where stats collection is the only task for the given query (no
- * parent MR or Tez job). It is used in the following cases 1) ANALYZE with partialscan/noscan for
+ * parent MR or Tez job). It is used in the following cases 1) ANALYZE with noscan for
  * file formats that implement StatsProvidingRecordReader interface: ORC format (implements
  * StatsProvidingRecordReader) stores column statistics for all columns in the file footer. Its much
  * faster to compute the table/partition statistics by reading the footer than scanning all the
@@ -103,14 +103,14 @@ public class StatsNoJobTask extends Task<StatsNoJobWork> implements Serializable
       tableName = work.getTableSpecs().tableName;
       table = db.getTable(tableName);
       int numThreads = HiveConf.getIntVar(conf, ConfVars.HIVE_STATS_GATHER_NUM_THREADS);
-      tableFullName = table.getDbName() + "." + table.getTableName();
+      tableFullName = table.getFullyQualifiedName();
       threadPool = Executors.newFixedThreadPool(numThreads,
           new ThreadFactoryBuilder().setDaemon(true).setNameFormat("StatsNoJobTask-Thread-%d")
               .build());
       partUpdates = new MapMaker().concurrencyLevel(numThreads).makeMap();
-      LOG.info("Initialized threadpool for stats computation with " + numThreads + " threads");
+      LOG.info("Initialized threadpool for stats computation with {} threads", numThreads);
     } catch (HiveException e) {
-      LOG.error("Cannot get table " + tableName, e);
+      LOG.error("Cannot get table {}", tableName, e);
       console.printError("Cannot get table " + tableName, e.toString());
     }
 
@@ -185,12 +185,12 @@ public class StatsNoJobTask extends Task<StatsNoJobWork> implements Serializable
           String threadName = Thread.currentThread().getName();
           String msg = "Partition " + tableFullName + partn.getSpec() + " stats: ["
               + toString(parameters) + ']';
-          LOG.debug(threadName + ": " + msg);
+          LOG.debug("{}: {}", threadName, msg);
           console.printInfo(msg);
         } else {
           String threadName = Thread.currentThread().getName();
           String msg = "Partition " + tableFullName + partn.getSpec() + " does not provide stats.";
-          LOG.debug(threadName + ": " + msg);
+          LOG.debug("{}: {}", threadName, msg);
         }
       } catch (Exception e) {
         console.printInfo("[Warning] could not update stats for " + tableFullName + partn.getSpec()
@@ -239,6 +239,7 @@ public class StatsNoJobTask extends Task<StatsNoJobWork> implements Serializable
         Map<String, String> parameters = tTable.getParameters();
         try {
           Path dir = new Path(tTable.getSd().getLocation());
+          LOG.debug("Aggregating stats for " + dir);
           long numRows = 0;
           long rawDataSize = 0;
           long fileSize = 0;
@@ -248,6 +249,7 @@ public class StatsNoJobTask extends Task<StatsNoJobWork> implements Serializable
 
           boolean statsAvailable = false;
           for(FileStatus file: fileList) {
+            LOG.debug("Computing stats for " + file);
             if (!file.isDir()) {
               InputFormat<?, ?> inputFormat = ReflectionUtil.newInstance(
                   table.getInputFormatClass(), jc);
@@ -281,14 +283,14 @@ public class StatsNoJobTask extends Task<StatsNoJobWork> implements Serializable
             EnvironmentContext environmentContext = new EnvironmentContext();
             environmentContext.putToProperties(StatsSetupConst.STATS_GENERATED, StatsSetupConst.TASK);
 
-            db.alterTable(tableFullName, new Table(tTable), environmentContext);
+            db.alterTable(table, environmentContext);
 
             String msg = "Table " + tableFullName + " stats: [" + toString(parameters) + ']';
-            LOG.debug(msg);
+            if (Utilities.FILE_OP_LOGGER.isTraceEnabled()) {
+              Utilities.FILE_OP_LOGGER.trace(msg);
+            }
             console.printInfo(msg);
-          } else {
-            String msg = "Table " + tableFullName + " does not provide stats.";
-            LOG.debug(msg);
+            LOG.debug("Table {} does not provide stats.", tableFullName);
           }
         } catch (Exception e) {
           console.printInfo("[Warning] could not update stats for " + tableFullName + ".",
@@ -332,7 +334,7 @@ public class StatsNoJobTask extends Task<StatsNoJobWork> implements Serializable
         environmentContext.putToProperties(StatsSetupConst.STATS_GENERATED, StatsSetupConst.TASK);
         db.alterPartitions(tableFullName, Lists.newArrayList(partUpdates.values()),
             environmentContext);
-        LOG.debug("Bulk updated " + partUpdates.values().size() + " partitions.");
+        LOG.debug("Bulk updated {} partitions.", partUpdates.values().size());
       }
     }
     return 0;

@@ -114,6 +114,7 @@ import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObje
 import org.apache.hadoop.hive.ql.security.authorization.plugin.HivePrivilegeObject.HivePrivilegeObjectType;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.ql.session.SessionState.LogHelper;
+import org.apache.hadoop.hive.ql.wm.TriggerContext;
 import org.apache.hadoop.hive.serde2.ByteStream;
 import org.apache.hadoop.hive.shims.Utils;
 import org.apache.hadoop.mapred.ClusterStatus;
@@ -130,6 +131,8 @@ import com.google.common.collect.Sets;
 
 
 public class Driver implements CommandProcessor {
+
+  public static final String MAPREDUCE_WORKFLOW_NODE_NAME = "mapreduce.workflow.node.name";
 
   static final private String CLASS_NAME = Driver.class.getName();
   private static final Logger LOG = LoggerFactory.getLogger(CLASS_NAME);
@@ -226,8 +229,9 @@ public class Driver implements CommandProcessor {
     }
 
     public static void removeLockedDriverState() {
-      if (lds != null)
+      if (lds != null) {
         lds.remove();
+      }
     }
   }
 
@@ -238,11 +242,6 @@ public class Driver implements CommandProcessor {
       return false;
     }
     return true;
-  }
-
-  @Override
-  public void init() {
-    // Nothing for now.
   }
 
   /**
@@ -484,6 +483,9 @@ public class Driver implements CommandProcessor {
 
     String queryId = queryState.getQueryId();
 
+    if (ctx != null) {
+      setTriggerContext(queryId);
+    }
     //save some info for webUI for use after plan is freed
     this.queryDisplay.setQueryStr(queryStr);
     this.queryDisplay.setQueryId(queryId);
@@ -528,6 +530,7 @@ public class Driver implements CommandProcessor {
       }
       if (ctx == null) {
         ctx = new Context(conf);
+        setTriggerContext(queryId);
       }
 
       ctx.setTryCount(getTryCount());
@@ -712,6 +715,20 @@ public class Driver implements CommandProcessor {
     }
   }
 
+  private void setTriggerContext(final String queryId) {
+    final long queryStartTime;
+    // query info is created by SQLOperation which will have start time of the operation. When JDBC Statement is not
+    // used queryInfo will be null, in which case we take creation of Driver instance as query start time (which is also
+    // the time when query display object is created)
+    if (queryInfo != null) {
+      queryStartTime = queryInfo.getBeginTime();
+    } else {
+      queryStartTime = queryDisplay.getQueryStartTime();
+    }
+    TriggerContext triggerContext = new TriggerContext(queryStartTime, queryId);
+    ctx.setTriggerContext(triggerContext);
+  }
+
   private boolean startImplicitTxn(HiveTxnManager txnManager) throws LockException {
     boolean shouldOpenImplicitTxn = !ctx.isExplainPlan();
     //this is dumb. HiveOperation is not always set. see HIVE-16447/HIVE-16443
@@ -843,7 +860,7 @@ public class Driver implements CommandProcessor {
     }
 
     // The following union operation returns a union, which traverses over the
-    // first set once and then  then over each element of second set, in order, 
+    // first set once and then  then over each element of second set, in order,
     // that is not contained in first. This means it doesn't replace anything
     // in first set, and would preserve the WriteType in WriteEntity in first
     // set in case of outputs list.
@@ -1103,6 +1120,7 @@ public class Driver implements CommandProcessor {
       String objName = null;
       List<String> partKeys = null;
       List<String> columns = null;
+      String className = null;
       switch(privObject.getType()){
       case DATABASE:
         dbname = privObject.getDatabase().getName();
@@ -1122,6 +1140,7 @@ public class Driver implements CommandProcessor {
           dbname = privObject.getDatabase().getName();
         }
         objName = privObject.getFunctionName();
+        className = privObject.getClassName();
         break;
       case DUMMYPARTITION:
       case PARTITION:
@@ -1135,7 +1154,7 @@ public class Driver implements CommandProcessor {
       }
       HivePrivObjectActionType actionType = AuthorizationUtils.getActionType(privObject);
       HivePrivilegeObject hPrivObject = new HivePrivilegeObject(privObjType, dbname, objName,
-          partKeys, columns, actionType, null);
+          partKeys, columns, actionType, null, className);
       hivePrivobjs.add(hPrivObject);
     }
     return hivePrivobjs;
@@ -1229,7 +1248,8 @@ public class Driver implements CommandProcessor {
         List<FileSinkDesc> acidSinks = new ArrayList<>(plan.getAcidSinks());
         //sorting makes tests easier to write since file names and ROW__IDs depend on statementId
         //so this makes (file name -> data) mapping stable
-        acidSinks.sort((FileSinkDesc fsd1, FileSinkDesc fsd2) -> fsd1.getDirName().compareTo(fsd2.getDirName()));
+        acidSinks.sort((FileSinkDesc fsd1, FileSinkDesc fsd2) ->
+          fsd1.getDirName().compareTo(fsd2.getDirName()));
         for (FileSinkDesc desc : acidSinks) {
           desc.setTransactionId(queryTxnMgr.getCurrentTxnId());
           //it's possible to have > 1 FileSink writing to the same table/partition
@@ -1237,7 +1257,7 @@ public class Driver implements CommandProcessor {
           desc.setStatementId(queryTxnMgr.getWriteIdAndIncrement());
         }
       }
-      /*It's imperative that {@code acquireLocks()} is called for all commands so that 
+      /*It's imperative that {@code acquireLocks()} is called for all commands so that
       HiveTxnManager can transition its state machine correctly*/
       queryTxnMgr.acquireLocks(plan, ctx, userFromUGI, lDrvState);
       if(queryTxnMgr.recordSnapshot(plan)) {
@@ -1586,18 +1606,16 @@ public class Driver implements CommandProcessor {
       // same instance of Driver, which can run multiple queries.
       ctx.setHiveTxnManager(queryTxnMgr);
 
-      if (requiresLock()) {
-        // a checkpoint to see if the thread is interrupted or not before an expensive operation
-        if (isInterrupted()) {
-          ret = handleInterruption("at acquiring the lock.");
-        } else {
-          ret = acquireLocks();
-        }
-        if (ret != 0) {
-          return rollback(createProcessorResponse(ret));
-        }
+      if (isInterrupted()) {
+        return createProcessorResponse(handleInterruption("at acquiring the lock."));
       }
-      ret = execute(true);
+
+      CommandProcessorResponse resp = lockAndRespond();
+      if (resp.failed()) {
+        return resp;
+      }
+
+      ret = execute();
       if (ret != 0) {
         //if needRequireLock is false, the release here will do nothing because there is no lock
         return rollback(createProcessorResponse(ret));
@@ -1659,6 +1677,7 @@ public class Driver implements CommandProcessor {
   }
 
   private CommandProcessorResponse rollback(CommandProcessorResponse cpr) {
+
     //console.printError(cpr.toString());
     try {
       releaseLocksAndCommitOrRollback(false);
@@ -1743,11 +1762,7 @@ public class Driver implements CommandProcessor {
     return new CommandProcessorResponse(ret, errorMessage, SQLState, downstreamError);
   }
 
-  public int execute() throws CommandNeedRetryException {
-    return execute(false);
-  }
-
-  public int execute(boolean deferClose) throws CommandNeedRetryException {
+  private int execute() throws CommandNeedRetryException {
     PerfLogger perfLogger = SessionState.getPerfLogger();
     perfLogger.PerfLogBegin(CLASS_NAME, PerfLogger.DRIVER_EXECUTE);
 
@@ -1891,7 +1906,19 @@ public class Driver implements CommandProcessor {
         if (tskRun == null) {
           continue;
         }
-        hookContext.addCompleteTask(tskRun);
+        /*
+          This should be removed eventually. HIVE-17814 gives more detail
+          explanation of whats happening and HIVE-17815 as to why this is done.
+          Briefly for replication the graph is huge and so memory pressure is going to be huge if
+          we keep a lot of references around.
+        */
+        String opName = plan.getOperationName();
+        boolean isReplicationOperation = opName.equals(HiveOperation.REPLDUMP.getOperationName())
+            || opName.equals(HiveOperation.REPLLOAD.getOperationName());
+        if (!isReplicationOperation) {
+          hookContext.addCompleteTask(tskRun);
+        }
+
         queryDisplay.setTaskResult(tskRun.getTask().getId(), tskRun.getTaskResult());
 
         Task<? extends Serializable> tsk = tskRun.getTask();
@@ -2078,15 +2105,9 @@ public class Driver implements CommandProcessor {
         console.printInfo("Total MapReduce CPU Time Spent: " + Utilities.formatMsecToStr(totalCpu));
       }
       boolean isInterrupted = isInterrupted();
-      if (isInterrupted && !deferClose) {
-        closeInProcess(true);
-      }
       lDrvState.stateLock.lock();
       try {
         if (isInterrupted) {
-          if (!deferClose) {
-            lDrvState.driverState = DriverState.ERROR;
-          }
         } else {
           lDrvState.driverState = executionError ? DriverState.ERROR : DriverState.EXECUTED;
         }
@@ -2215,9 +2236,9 @@ public class Driver implements CommandProcessor {
     }
     if (tsk.isMapRedTask() && !(tsk instanceof ConditionalTask)) {
       if (noName) {
-        conf.set(MRJobConfig.JOB_NAME, jobname + "(" + tsk.getId() + ")");
+        conf.set(MRJobConfig.JOB_NAME, jobname + " (" + tsk.getId() + ")");
       }
-      conf.set("mapreduce.workflow.node.name", tsk.getId());
+      conf.set(MAPREDUCE_WORKFLOW_NODE_NAME, tsk.getId());
       Utilities.setWorkflowAdjacencies(conf, plan);
       cxt.incCurJobNo(1);
       console.printInfo("Launching Job " + cxt.getCurJobNo() + " out of " + jobs);

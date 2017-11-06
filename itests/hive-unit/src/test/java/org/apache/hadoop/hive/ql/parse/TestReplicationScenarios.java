@@ -53,6 +53,7 @@ import org.apache.hadoop.hive.ql.Driver;
 import org.apache.hadoop.hive.ql.exec.repl.ReplDumpWork;
 import org.apache.hadoop.hive.ql.processors.CommandProcessorResponse;
 import org.apache.hadoop.hive.ql.session.SessionState;
+import org.apache.hadoop.hive.ql.stats.StatsUtils;
 import org.apache.hadoop.hive.shims.Utils;
 import org.apache.hadoop.security.authorize.ProxyUsers;
 import org.apache.hive.hcatalog.api.repl.ReplicationV1CompatRule;
@@ -287,8 +288,8 @@ public class TestReplicationScenarios {
     verifyRun("SELECT * from " + replicatedDbName + ".unptned", unptn_data, driverMirror);
     verifyRun("SELECT a from " + replicatedDbName + ".ptned WHERE b=1", ptn_data_1, driverMirror);
     verifyRun("SELECT a from " + replicatedDbName + ".ptned WHERE b=2", ptn_data_2, driverMirror);
-    verifyRun("SELECT a from " + dbName + ".ptned_empty", empty, driverMirror);
-    verifyRun("SELECT * from " + dbName + ".unptned_empty", empty, driverMirror);
+    verifyRun("SELECT a from " + replicatedDbName + ".ptned_empty", empty, driverMirror);
+    verifyRun("SELECT * from " + replicatedDbName + ".unptned_empty", empty, driverMirror);
   }
 
   @Test
@@ -1406,7 +1407,7 @@ public class TestReplicationScenarios {
 
             // Skip all the events belong to other DBs/tables.
             if (event.getDbName().equalsIgnoreCase(dbName)) {
-              if (event.getEventType() == "INSERT") {
+              if (event.getEventType().equalsIgnoreCase("INSERT")) {
                 // If an insert event is found, then return null hence no event is dumped.
                 LOG.error("Encountered INSERT event when it was not expected to");
                 return null;
@@ -1425,7 +1426,66 @@ public class TestReplicationScenarios {
     eventTypeValidator.assertInjectionsPerformed(true,false);
     InjectableBehaviourObjectStore.resetGetNextNotificationBehaviour(); // reset the behaviour
 
-    verifyRun("SELECT a from " + dbName + "_dupe.ptned where (b=1)", ptn_data, driverMirror);
+    verifyRun("SELECT a from " + replDbName + ".ptned where (b=1)", ptn_data, driverMirror);
+  }
+
+  @Test
+  public void testIdempotentMoveTaskForInsertFiles() throws IOException {
+    String name = testName.getMethodName();
+    final String dbName = createDB(name, driver);
+    String replDbName = dbName + "_dupe";
+    run("CREATE TABLE " + dbName + ".unptned(a string) STORED AS TEXTFILE", driver);
+    Tuple bootstrap = bootstrapLoadAndVerify(dbName, replDbName);
+
+    String[] unptn_data = new String[]{ "ten"};
+    run("INSERT INTO TABLE " + dbName + ".unptned values('" + unptn_data[0] + "')", driver);
+
+    // Inject a behaviour where it repeats the INSERT event twice with different event IDs
+    BehaviourInjection<NotificationEventResponse,NotificationEventResponse> insertEventRepeater
+            = new BehaviourInjection<NotificationEventResponse,NotificationEventResponse>(){
+
+      @Nullable
+      @Override
+      public NotificationEventResponse apply(@Nullable NotificationEventResponse eventsList) {
+        if (null != eventsList) {
+          List<NotificationEvent> events = eventsList.getEvents();
+          List<NotificationEvent> outEvents = new ArrayList<>();
+          long insertEventId = -1;
+
+          for (int i = 0; i < events.size(); i++) {
+            NotificationEvent event = events.get(i);
+
+            // Skip all the events belong to other DBs/tables.
+            if (event.getDbName().equalsIgnoreCase(dbName)) {
+              if (event.getEventType().equalsIgnoreCase("INSERT")) {
+                // Add insert event twice with different event ID to allow apply of both events.
+                NotificationEvent newEvent = new NotificationEvent(event);
+                outEvents.add(newEvent);
+                insertEventId = newEvent.getEventId();
+              }
+            }
+
+            NotificationEvent newEvent = new NotificationEvent(event);
+            if (insertEventId != -1) {
+              insertEventId++;
+              newEvent.setEventId(insertEventId);
+            }
+            outEvents.add(newEvent);
+          }
+          eventsList.setEvents(outEvents);
+          injectionPathCalled = true;
+        }
+        return eventsList;
+      }
+    };
+    InjectableBehaviourObjectStore.setGetNextNotificationBehaviour(insertEventRepeater);
+
+    incrementalLoadAndVerify(dbName, bootstrap.lastReplId, replDbName);
+
+    insertEventRepeater.assertInjectionsPerformed(true,false);
+    InjectableBehaviourObjectStore.resetGetNextNotificationBehaviour(); // reset the behaviour
+
+    verifyRun("SELECT a from " + replDbName + ".unptned", unptn_data, driverMirror);
   }
 
   @Test
@@ -1827,6 +1887,31 @@ public class TestReplicationScenarios {
     run("REPL LOAD " + dbName + "_dupe FROM '" + incrementalDumpLocn + "'", driverMirror);
     verifyRun("SELECT a from " + dbName + "_dupe.ptned where (b=1) ORDER BY a", ptn_data_1, driverMirror);
     verifyRun("SELECT a from " + dbName + "_dupe.ptned where (b=2) ORDER BY a", data_after_ovwrite, driverMirror);
+  }
+
+  @Test
+  public void testDropPartitionEventWithPartitionOnTimestampColumn() throws IOException {
+    String testName = "dropPartitionEventWithPartitionOnTimestampColumn";
+    String dbName = createDB(testName, driver);
+    run("CREATE TABLE " + dbName + ".ptned(a string) PARTITIONED BY (b timestamp)", driver);
+
+    // Bootstrap dump/load
+    String replDbName = dbName + "_dupe";
+    Tuple bootstrapDump = bootstrapLoadAndVerify(dbName, replDbName);
+
+    String[] ptn_data = new String[] { "fifteen" };
+    String ptnVal = "2017-10-24 00:00:00.0";
+    run("INSERT INTO TABLE " + dbName + ".ptned PARTITION(b=\"" + ptnVal +"\") values('" + ptn_data[0] + "')", driver);
+
+    // Replicate insert event and verify
+    Tuple incrDump = incrementalLoadAndVerify(dbName, bootstrapDump.lastReplId, replDbName);
+    verifyRun("SELECT a from " + replDbName + ".ptned where (b=\"" + ptnVal + "\") ORDER BY a", ptn_data, driverMirror);
+
+    run("ALTER TABLE " + dbName + ".ptned DROP PARTITION(b=\"" + ptnVal + "\")", driver);
+
+    // Replicate drop partition event and verify
+    incrementalLoadAndVerify(dbName, incrDump.lastReplId, replDbName);
+    verifyIfPartitionNotExist(replDbName, "ptned", new ArrayList<>(Arrays.asList(ptnVal)), metaStoreClientMirror);
   }
 
   @Test
@@ -2874,9 +2959,9 @@ public class TestReplicationScenarios {
 
     run("CREATE DATABASE " + dbName, driver);
 
-    run("CREATE TABLE " + dbName + ".tbl1(a string, b string, primary key (a) disable novalidate rely, unique (b) disable)", driver);
+    run("CREATE TABLE " + dbName + ".tbl1(a string, b string, primary key (a, b) disable novalidate rely)", driver);
     run("CREATE TABLE " + dbName + ".tbl2(a string, b string, foreign key (a, b) references " + dbName + ".tbl1(a, b) disable novalidate)", driver);
-    run("CREATE TABLE " + dbName + ".tbl3(a string, b string not null disable)", driver);
+    run("CREATE TABLE " + dbName + ".tbl3(a string, b string not null disable, unique (a) disable)", driver);
 
     advanceDumpDir();
     run("REPL DUMP " + dbName, driver);
@@ -2887,20 +2972,20 @@ public class TestReplicationScenarios {
 
     try {
       List<SQLPrimaryKey> pks = metaStoreClientMirror.getPrimaryKeys(new PrimaryKeysRequest(dbName+ "_dupe" , "tbl1"));
-      assertEquals(pks.size(), 1);
-      List<SQLUniqueConstraint> uks = metaStoreClientMirror.getUniqueConstraints(new UniqueConstraintsRequest(dbName+ "_dupe" , "tbl1"));
+      assertEquals(pks.size(), 2);
+      List<SQLUniqueConstraint> uks = metaStoreClientMirror.getUniqueConstraints(new UniqueConstraintsRequest(dbName+ "_dupe" , "tbl3"));
       assertEquals(uks.size(), 1);
       List<SQLForeignKey> fks = metaStoreClientMirror.getForeignKeys(new ForeignKeysRequest(null, null, dbName+ "_dupe" , "tbl2"));
-      assertEquals(fks.size(), 1);
+      assertEquals(fks.size(), 2);
       List<SQLNotNullConstraint> nns = metaStoreClientMirror.getNotNullConstraints(new NotNullConstraintsRequest(dbName+ "_dupe" , "tbl3"));
       assertEquals(nns.size(), 1);
     } catch (TException te) {
       assertNull(te);
     }
 
-    run("CREATE TABLE " + dbName + ".tbl4(a string, b string, primary key (a) disable novalidate rely, unique (b) disable)", driver);
+    run("CREATE TABLE " + dbName + ".tbl4(a string, b string, primary key (a, b) disable novalidate rely)", driver);
     run("CREATE TABLE " + dbName + ".tbl5(a string, b string, foreign key (a, b) references " + dbName + ".tbl4(a, b) disable novalidate)", driver);
-    run("CREATE TABLE " + dbName + ".tbl6(a string, b string not null disable)", driver);
+    run("CREATE TABLE " + dbName + ".tbl6(a string, b string not null disable, unique (a) disable)", driver);
 
     advanceDumpDir();
     run("REPL DUMP " + dbName + " FROM " + replDumpId, driver);
@@ -2915,13 +3000,13 @@ public class TestReplicationScenarios {
     String nnName = null;
     try {
       List<SQLPrimaryKey> pks = metaStoreClientMirror.getPrimaryKeys(new PrimaryKeysRequest(dbName+ "_dupe" , "tbl4"));
-      assertEquals(pks.size(), 1);
+      assertEquals(pks.size(), 2);
       pkName = pks.get(0).getPk_name();
-      List<SQLUniqueConstraint> uks = metaStoreClientMirror.getUniqueConstraints(new UniqueConstraintsRequest(dbName+ "_dupe" , "tbl4"));
+      List<SQLUniqueConstraint> uks = metaStoreClientMirror.getUniqueConstraints(new UniqueConstraintsRequest(dbName+ "_dupe" , "tbl6"));
       assertEquals(uks.size(), 1);
       ukName = uks.get(0).getUk_name();
       List<SQLForeignKey> fks = metaStoreClientMirror.getForeignKeys(new ForeignKeysRequest(null, null, dbName+ "_dupe" , "tbl5"));
-      assertEquals(fks.size(), 1);
+      assertEquals(fks.size(), 2);
       fkName = fks.get(0).getFk_name();
       List<SQLNotNullConstraint> nns = metaStoreClientMirror.getNotNullConstraints(new NotNullConstraintsRequest(dbName+ "_dupe" , "tbl6"));
       assertEquals(nns.size(), 1);
@@ -3098,7 +3183,8 @@ public class TestReplicationScenarios {
 	String testName = "deleteStagingDir";
 	String dbName = createDB(testName, driver);
 	String tableName = "unptned";
-    run("CREATE TABLE " + dbName + "." + tableName + "(a string) STORED AS TEXTFILE", driver);
+    run("CREATE TABLE " + StatsUtils.getFullyQualifiedTableName(dbName, tableName) + "(a string) STORED AS TEXTFILE",
+        driver);
 
     String[] unptn_data = new String[] {"one", "two"};
     String unptn_locn = new Path(TEST_PATH , testName + "_unptn").toUri().getPath();
@@ -3112,7 +3198,6 @@ public class TestReplicationScenarios {
     String replDumpLocn = getResult(0,0,driver);
     // Reset the driver
     driverMirror.close();
-    driverMirror.init();
     run("REPL LOAD " + dbName + "_dupe FROM '" + replDumpLocn + "'", driverMirror);
     // Calling close() explicitly to clean up the staging dirs
     driverMirror.close();

@@ -55,7 +55,7 @@ STAGE PLANS:
     Tez
 #### A masked pattern was here ####
       Edges:
-        Reducer 2 <- Map 1 (CUSTOM_SIMPLE_EDGE), Reducer 4 (CUSTOM_SIMPLE_EDGE)
+        Reducer 2 <- Map 1 (XPROD_EDGE), Reducer 4 (XPROD_EDGE)
         Reducer 3 <- Reducer 2 (CUSTOM_SIMPLE_EDGE), Reducer 5 (CUSTOM_SIMPLE_EDGE)
         Reducer 4 <- Map 1 (CUSTOM_SIMPLE_EDGE)
         Reducer 5 <- Map 1 (SIMPLE_EDGE)
@@ -128,7 +128,7 @@ STAGE PLANS:
                   predicate: ((_col1 = 0) or _col2 is null) (type: boolean)
                   Statistics: Num rows: 1 Data size: 10 Basic stats: COMPLETE Column stats: NONE
                   Select Operator
-                    expressions: null (type: double)
+                    expressions: null (type: void)
                     outputColumnNames: _col0
                     Statistics: Num rows: 1 Data size: 10 Basic stats: COMPLETE Column stats: NONE
                     File Output Operator

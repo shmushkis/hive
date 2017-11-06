@@ -53,12 +53,14 @@ import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer.TableSpec;
 import org.apache.hadoop.hive.ql.parse.ExplainConfiguration.AnalyzeState;
 import org.apache.hadoop.hive.ql.plan.DynamicPartitionCtx;
 import org.apache.hadoop.hive.ql.plan.LoadTableDesc;
+import org.apache.hadoop.hive.ql.plan.LoadTableDesc.LoadFileType;
 import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.api.StageType;
 import org.apache.hadoop.hive.ql.stats.StatsAggregator;
 import org.apache.hadoop.hive.ql.stats.StatsCollectionContext;
 import org.apache.hadoop.hive.ql.stats.StatsFactory;
 import org.apache.hadoop.hive.ql.stats.StatsPublisher;
+import org.apache.hadoop.hive.ql.stats.StatsUtils;
 import org.apache.hadoop.util.StringUtils;
 
 import com.google.common.collect.Lists;
@@ -127,7 +129,7 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
       table = hive.getTable(tableName);
 
     } catch (HiveException e) {
-      LOG.error("Cannot get table " + tableName, e);
+      LOG.error("Cannot get table {}", tableName, e);
       console.printError("Cannot get table " + tableName, e.toString());
     }
 
@@ -169,7 +171,7 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
       List<Partition> partitions = getPartitionsList(db);
       boolean atomic = HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_STATS_ATOMIC);
 
-      String tableFullName = table.getDbName() + "." + table.getTableName();
+      String tableFullName = table.getFullyQualifiedName();
 
       if (partitions == null) {
         org.apache.hadoop.hive.metastore.api.Table tTable = table.getTTable();
@@ -179,10 +181,11 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
         // work.getLoadTableDesc().getReplace() is true means insert overwrite command 
         // work.getLoadFileDesc().getDestinationCreateTable().isEmpty() means CTAS etc.
         // acidTable will not have accurate stats unless it is set through analyze command.
-        if (work.getTableSpecs() == null && AcidUtils.isAcidTable(table)) {
+        if (work.getTableSpecs() == null && AcidUtils.isFullAcidTable(table)) {
           StatsSetupConst.setBasicStatsState(parameters, StatsSetupConst.FALSE);
         } else if (work.getTableSpecs() != null
-            || (work.getLoadTableDesc() != null && work.getLoadTableDesc().getReplace())
+            || (work.getLoadTableDesc() != null
+                && (work.getLoadTableDesc().getLoadFileType() == LoadFileType.REPLACE_ALL))
             || (work.getLoadFileDesc() != null && !work.getLoadFileDesc()
                 .getDestinationCreateTable().isEmpty())) {
           StatsSetupConst.setBasicStatsState(parameters, StatsSetupConst.TRUE);
@@ -213,11 +216,15 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
           }
         }
 
-        getHive().alterTable(tableFullName, new Table(tTable), environmentContext);
+        getHive().alterTable(table, environmentContext);
         if (conf.getBoolVar(ConfVars.TEZ_EXEC_SUMMARY)) {
           console.printInfo("Table " + tableFullName + " stats: [" + toString(parameters) + ']');
         }
-        LOG.info("Table " + tableFullName + " stats: [" + toString(parameters) + ']');
+        LOG.info("Table {} stats: [{}]", tableFullName, toString(parameters));
+        if (Utilities.FILE_OP_LOGGER.isTraceEnabled()) {
+          Utilities.FILE_OP_LOGGER.trace(
+              "Table " + tableFullName + " stats: [" + toString(parameters) + ']');
+        }
       } else {
         // Partitioned table:
         // Need to get the old stats of the partition
@@ -234,7 +241,7 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
             .setNameFormat("stats-updater-thread-%d")
             .build());
         final List<Future<Void>> futures = Lists.newLinkedList();
-        LOG.debug("Getting file stats of all partitions. threadpool size:" + poolSize);
+        LOG.debug("Getting file stats of all partitions. threadpool size: {}", poolSize);
         try {
           for(final Partition partn : partitions) {
             final String partitionName = partn.getName();
@@ -258,7 +265,7 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
             future.get();
           }
         } catch (InterruptedException e) {
-          LOG.debug("Cancelling " + futures.size() + " file stats lookup tasks");
+          LOG.debug("Cancelling {} file stats lookup tasks", futures.size());
           //cancel other futures
           for (Future future : futures) {
             future.cancel(true);
@@ -280,10 +287,11 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
           //
           org.apache.hadoop.hive.metastore.api.Partition tPart = partn.getTPartition();
           Map<String, String> parameters = tPart.getParameters();
-          if (work.getTableSpecs() == null && AcidUtils.isAcidTable(table)) {
+          if (work.getTableSpecs() == null && AcidUtils.isFullAcidTable(table)) {
             StatsSetupConst.setBasicStatsState(parameters, StatsSetupConst.FALSE);
           } else if (work.getTableSpecs() != null
-              || (work.getLoadTableDesc() != null && work.getLoadTableDesc().getReplace())
+              || (work.getLoadTableDesc() != null
+                  && (work.getLoadTableDesc().getLoadFileType() == LoadFileType.REPLACE_ALL))
               || (work.getLoadFileDesc() != null && !work.getLoadFileDesc()
                   .getDestinationCreateTable().isEmpty())) {
             StatsSetupConst.setBasicStatsState(parameters, StatsSetupConst.TRUE);
@@ -318,8 +326,8 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
             console.printInfo("Partition " + tableFullName + partn.getSpec() +
             " stats: [" + toString(parameters) + ']');
           }
-          LOG.info("Partition " + tableFullName + partn.getSpec() +
-              " stats: [" + toString(parameters) + ']');
+          LOG.info("Partition {}{} stats: [{}]", tableFullName, partn.getSpec(),
+            toString(parameters));
         }
         if (!updates.isEmpty()) {
           db.alterPartitions(tableFullName, updates, environmentContext);
@@ -349,7 +357,8 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
       throws MetaException {
 
     // prefix is of the form dbName.tblName
-    String prefix = table.getDbName() + "." + org.apache.hadoop.hive.metastore.utils.MetaStoreUtils.encodeTableName(table.getTableName());
+    String prefix = StatsUtils.getFullyQualifiedTableName(table.getDbName(),
+        org.apache.hadoop.hive.metastore.utils.MetaStoreUtils.encodeTableName(table.getTableName()));
     if (partition != null) {
       return Utilities.join(prefix, Warehouse.makePartPath(partition.getSpec()));
     }
@@ -409,7 +418,7 @@ public class StatsTask extends Task<StatsWork> implements Serializable {
         long longValue = Long.parseLong(value);
 
         if (work.getLoadTableDesc() != null &&
-            !work.getLoadTableDesc().getReplace()) {
+                (work.getLoadTableDesc().getLoadFileType() != LoadFileType.REPLACE_ALL)) {
           String originalValue = parameters.get(statType);
           if (originalValue != null) {
             longValue += Long.parseLong(originalValue); // todo: invalid + valid = invalid
