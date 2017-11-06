@@ -85,12 +85,12 @@ public class ASTBuilder {
               .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_TYPE + "\"")
               .add(HiveParser.StringLiteral, "\"" + dq.getQueryType().getQueryName() + "\""));
     } else if (scan instanceof JdbcTableScan) {// TODOY 35:30
-      /*JdbcTableScan jq = (JdbcTableScan) scan;
+      JdbcTableScan jq = (JdbcTableScan) scan;
 
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
           .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
               .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(
-              jq.jdbcTable.toString()) + "\""));*/
+              jq.jdbcTable.toString()) + "\""));
     }
 
     if (hts.isInsideView()) {
