@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.ql.optimizer.calcite.translator;
 import java.math.BigDecimal;
 
 import org.apache.calcite.adapter.druid.DruidQuery;
+import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rex.RexLiteral;
@@ -83,12 +84,15 @@ public class ASTBuilder {
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_TYPE + "\"")
               .add(HiveParser.StringLiteral, "\"" + dq.getQueryType().getQueryName() + "\""));
-    } /*else if (scan instanceof JdbcQuery) {// TODOY 35:30
+    } else if (scan instanceof JdbcTableScan) {// TODOY 35:30
+      /*JdbcTableScan jq = (JdbcTableScan) scan;
+
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
-          .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_JSON + "\"")
-          .add(HiveParser.StringLiteral,
-              "\"" + SemanticAnalyzer.escapeSQLString(dq.getQueryString()) + "\""));
-    }*/
+          .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
+              .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(
+              jq.jdbcTable.toString()) + "\""));*/
+    }
+
     if (hts.isInsideView()) {
       // We need to carry the insideView information from calcite into the ast.
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")

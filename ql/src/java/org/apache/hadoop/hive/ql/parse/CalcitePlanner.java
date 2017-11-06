@@ -43,6 +43,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.sql.DataSource;
+
 import org.antlr.runtime.ClassicToken;
 import org.antlr.runtime.CommonToken;
 import org.antlr.runtime.tree.Tree;
@@ -53,7 +55,7 @@ import org.apache.calcite.adapter.druid.DruidRules;
 import org.apache.calcite.adapter.druid.DruidSchema;
 import org.apache.calcite.adapter.druid.DruidTable;
 import org.apache.calcite.adapter.druid.LocalInterval;
-import org.apache.calcite.adapter.jdbc.JdbcTableScan;
+import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -120,6 +122,7 @@ import org.apache.calcite.util.CompositeList;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.Pair;
+import org.apache.commons.dbcp.BasicDataSourceFactory;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.ObjectPair;
 import org.apache.hadoop.hive.conf.Constants;
@@ -147,9 +150,9 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.CalciteSemanticException.Unsu
 import org.apache.hadoop.hive.ql.optimizer.calcite.CalciteSubquerySemanticException;
 import org.apache.hadoop.hive.ql.optimizer.calcite.CalciteViewSemanticException;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveCalciteUtil;
+import org.apache.hadoop.hive.ql.optimizer.calcite.HiveConfPlannerContext;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveDefaultRelMetadataProvider;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HivePlannerContext;
-import org.apache.hadoop.hive.ql.optimizer.calcite.HiveConfPlannerContext;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveRelFactories;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveRexExecutorImpl;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveTypeSystemImpl;
@@ -229,8 +232,6 @@ import org.apache.hadoop.hive.ql.parse.PTFInvocationSpec.OrderSpec;
 import org.apache.hadoop.hive.ql.parse.PTFInvocationSpec.PartitionExpression;
 import org.apache.hadoop.hive.ql.parse.PTFInvocationSpec.PartitionSpec;
 import org.apache.hadoop.hive.ql.parse.QBExpr.Opcode;
-import org.apache.hadoop.hive.ql.parse.SemanticAnalyzer.PlannerContext;
-import org.apache.hadoop.hive.ql.parse.SemanticAnalyzer.PlannerContextFactory;
 import org.apache.hadoop.hive.ql.parse.WindowingSpec.BoundarySpec;
 import org.apache.hadoop.hive.ql.parse.WindowingSpec.WindowExpressionSpec;
 import org.apache.hadoop.hive.ql.parse.WindowingSpec.WindowFunctionSpec;
@@ -258,8 +259,6 @@ import org.apache.hadoop.hive.serde2.typeinfo.TypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoFactory;
 import org.apache.hadoop.hive.serde2.typeinfo.TypeInfoUtils;
 
-import com.esotericsoftware.minlog.Log;
-import com.esotericsoftware.minlog.Log.Logger;
 import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -267,6 +266,7 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.zaxxer.hikari.util.DriverDataSource;
 
 public class CalcitePlanner extends SemanticAnalyzer {
 
@@ -2385,10 +2385,21 @@ public class CalcitePlanner extends SemanticAnalyzer {
               optTable, druidTable, ImmutableList.<RelNode>of(scan));
         } else if (false && tableType == TableType.JDBC) {
           LOG.debug("JDBC is running");
-          // org.apache.calcite.adapter.jdbc.JDBCTable tbl = new
-          // org.apache.calcite.adapter.jdbc.JDBCTable ();
-          // Build Hive Table Scan Rel
-          // tableRel = new JdbcTableScan(cluster,);
+
+          /*Properties dbProperties = new Properties(); // TODO add user name and password
+          dbProperties.put("initialSize", "1");
+          dbProperties.put("maxActive", "3");
+          dbProperties.put("maxIdle", "0");
+          dbProperties.put("maxWait", "10000");
+          dbProperties.put("timeBetweenEvictionRunsMillis", "30000");
+          dbProperties.put("url", "jdbc:JethroData://jonathan.dynqa.com:9111/sanity_tpcds");
+          dbProperties.put("driverClassName", "com.jethrodata.JethroDriver");
+          dbProperties.put("type", "javax.sql.DataSource");
+          DataSource ds = BasicDataSourceFactory.createDataSource(dbProperties);
+          new DriverDataSource("jdbc:JethroData://jonathan.dynqa.com:9111/sanity_tpcds",
+              "com.jethrodata.JethroDriver", dbProperties, "jethro", "jethro");
+          new JdbcSchema(ds, null, null, null, null);*/
+
         } else {
           // Build row type from field <type, name>
           RelDataType rowType = TypeConverter.getType(cluster, rr, null);
