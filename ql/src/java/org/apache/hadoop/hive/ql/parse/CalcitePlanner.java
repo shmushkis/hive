@@ -2441,27 +2441,16 @@ public class CalcitePlanner extends SemanticAnalyzer {
             final String driver = tabMetaData.getProperty("hive.sql.jdbc.driver");
             final String user = tabMetaData.getProperty("hive.sql.dbcp.username");
             final String pswd = tabMetaData.getProperty("hive.sql.dbcp.password");
+            final String query = tabMetaData.getProperty("hive.sql.query");
             final String tbl = tabMetaData.getProperty("hive.sql.table");
-            // MetaStoreUtils.getTableMetadata(tabMetaData.getTTable());
-            // Properties res = SerDeUtils.createOverlayedProperties(null, null);
-            // Configuration tableConfig =
-            // JdbcStorageConfigManager.convertPropertiesToConfiguration(res);
-            // Properties props = getConnectionPoolProperties(conf);
-            // DataSource ds = BasicDataSourceFactory.createDataSource(props);
-            // Properties dbProperties = new Properties();
-            // java.sql.DriverManager.registerDriver(new JethroDriver());
 
-            DataSource ds = JdbcSchema.dataSource(url, driver, user, pswd);
+            final DataSource ds = JdbcSchema.dataSource(url, driver, user, pswd);
 
-            // DataSource ds =
-            // new DriverDataSource("jdbc:JethroData://jonathan.dynqa.com:9111/sanity_tpcds",
-            // "com.jethrodata.JethroDriver", dbProperties, "jethro", "jethro");
             JdbcConvention jc = new JdbcConvention(JethrodataSqlDialect.DEFAULT,
                 null/* Expression */, "JdbcConventionName");
             JdbcSchema schema = new JdbcSchema(ds, JethrodataSqlDialect.DEFAULT, jc,
                 ""/* empty catalog */, null/* empty schema */);
-            JdbcTable jt = (JdbcTable) schema.getTable(tbl.toLowerCase());// TODOY how can i extract
-                                                                          // it from
+            JdbcTable jt = (JdbcTable) schema.getTable(tbl.toLowerCase());
 
             // TODO Create case sensitive columns list
             tableRel = jt.toRel(RelOptUtil.getContext(cluster), optTable);
