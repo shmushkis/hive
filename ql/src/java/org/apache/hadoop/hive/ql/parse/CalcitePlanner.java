@@ -55,7 +55,9 @@ import org.apache.calcite.adapter.druid.DruidRules;
 import org.apache.calcite.adapter.druid.DruidSchema;
 import org.apache.calcite.adapter.druid.DruidTable;
 import org.apache.calcite.adapter.druid.LocalInterval;
+import org.apache.calcite.adapter.jdbc.JdbcConvention;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
+import org.apache.calcite.adapter.jdbc.JdbcTable;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -64,6 +66,7 @@ import org.apache.calcite.plan.RelOptMaterialization;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptSchema;
+import org.apache.calcite.plan.RelOptTable.ToRelContext;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.plan.hep.HepMatchOrder;
@@ -75,6 +78,7 @@ import org.apache.calcite.rel.RelCollationImpl;
 import org.apache.calcite.rel.RelCollations;
 import org.apache.calcite.rel.RelFieldCollation;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.core.Aggregate;
 import org.apache.calcite.rel.core.AggregateCall;
 import org.apache.calcite.rel.core.Filter;
@@ -110,12 +114,14 @@ import org.apache.calcite.rex.RexWindowBound;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlAggFunction;
 import org.apache.calcite.sql.SqlCall;
+import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlLiteral;
 import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.SqlWindow;
+import org.apache.calcite.sql.dialect.JethrodataSqlDialect;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.type.SqlTypeName;
@@ -125,12 +131,14 @@ import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.Pair;
 import org.apache.commons.dbcp.BasicDataSourceFactory;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.ObjectPair;
 import org.apache.hadoop.hive.conf.Constants;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.conf.HiveConf.StrictChecks;
+import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.QueryProperties;
@@ -253,6 +261,7 @@ import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFEvaluator;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFEvaluator.Mode;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
 import org.apache.hadoop.hive.serde.serdeConstants;
+import org.apache.hadoop.hive.serde2.SerDeUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StandardStructObjectInspector;
@@ -267,6 +276,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
+import com.jethrodata.JethroDriver;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -2368,14 +2378,14 @@ public class CalcitePlanner extends SemanticAnalyzer {
         }
 
         // 4. Build operator
-        if (tableType == TableType.DRUID) {
+        if (tableType == TableType.DRUID || tableType == TableType.JDBC) {
           // Create case sensitive columns list
           List<String> originalColumnNames =
-                  ((StandardStructObjectInspector)rowObjectInspector).getOriginalColumnNames();
+              ((StandardStructObjectInspector) rowObjectInspector).getOriginalColumnNames();
           List<ColumnInfo> cIList = new ArrayList<ColumnInfo>(originalColumnNames.size());
           for (int i = 0; i < rr.getColumnInfos().size(); i++) {
-            cIList.add(new ColumnInfo(originalColumnNames.get(i), rr.getColumnInfos().get(i).getType(),
-                    tableAlias, false));
+            cIList.add(new ColumnInfo(originalColumnNames.get(i),
+                rr.getColumnInfos().get(i).getType(), tableAlias, false));
           }
           // Build row type from field <type, name>
           RelDataType rowType = TypeConverter.getType(cluster, cIList);
@@ -2383,63 +2393,80 @@ public class CalcitePlanner extends SemanticAnalyzer {
           String fullyQualifiedTabName = tabMetaData.getDbName();
           if (fullyQualifiedTabName != null && !fullyQualifiedTabName.isEmpty()) {
             fullyQualifiedTabName = fullyQualifiedTabName + "." + tabMetaData.getTableName();
-          }
-          else {
+          } else {
             fullyQualifiedTabName = tabMetaData.getTableName();
           }
           RelOptHiveTable optTable = new RelOptHiveTable(relOptSchema, fullyQualifiedTabName,
-                  rowType, tabMetaData, nonPartitionColumns, partitionColumns, virtualCols, conf,
-                  partitionCache, colStatsCache, noColsMissingStats);
-          // Build Druid query
-          String address = HiveConf.getVar(conf,
-                  HiveConf.ConfVars.HIVE_DRUID_BROKER_DEFAULT_ADDRESS);
-          String dataSource = tabMetaData.getParameters().get(Constants.DRUID_DATA_SOURCE);
-          Set<String> metrics = new HashSet<>();
-          List<RelDataType> druidColTypes = new ArrayList<>();
-          List<String> druidColNames = new ArrayList<>();
-          for (RelDataTypeField field : rowType.getFieldList()) {
-            druidColTypes.add(field.getType());
-            druidColNames.add(field.getName());
-            if (field.getName().equals(DruidTable.DEFAULT_TIMESTAMP_COLUMN)) {
-              // timestamp
-              continue;
+              rowType, tabMetaData, nonPartitionColumns, partitionColumns, virtualCols, conf,
+              partitionCache, colStatsCache, noColsMissingStats);
+          if (tableType == TableType.DRUID) {
+            // Build Druid query
+            String address =
+                HiveConf.getVar(conf, HiveConf.ConfVars.HIVE_DRUID_BROKER_DEFAULT_ADDRESS);
+            String dataSource = tabMetaData.getParameters().get(Constants.DRUID_DATA_SOURCE);
+            Set<String> metrics = new HashSet<>();
+            List<RelDataType> druidColTypes = new ArrayList<>();
+            List<String> druidColNames = new ArrayList<>();
+            for (RelDataTypeField field : rowType.getFieldList()) {
+              druidColTypes.add(field.getType());
+              druidColNames.add(field.getName());
+              if (field.getName().equals(DruidTable.DEFAULT_TIMESTAMP_COLUMN)) {
+                // timestamp
+                continue;
+              }
+              if (field.getType().getSqlTypeName() == SqlTypeName.VARCHAR) {
+                // dimension
+                continue;
+              }
+              metrics.add(field.getName());
             }
-            if (field.getType().getSqlTypeName() == SqlTypeName.VARCHAR) {
-              // dimension
-              continue;
-            }
-            metrics.add(field.getName());
+            // TODO: Default interval will be an Interval once Calcite 1.15.0 is released.
+            // We will need to update the type of this list.
+            List<LocalInterval> intervals = Arrays.asList(DruidTable.DEFAULT_INTERVAL);
+
+            DruidTable druidTable = new DruidTable(new DruidSchema(address, address, false),
+                dataSource, RelDataTypeImpl.proto(rowType), metrics,
+                DruidTable.DEFAULT_TIMESTAMP_COLUMN, intervals, null, null);
+            final TableScan scan = new HiveTableScan(cluster,
+                cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
+                null == tableAlias ? tabMetaData.getTableName() : tableAlias,
+                getAliasId(tableAlias, qb),
+                HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_CBO_RETPATH_HIVEOP),
+                qb.isInsideView() || qb.getAliasInsideView().contains(tableAlias.toLowerCase()));
+            tableRel = DruidQuery.create(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION),
+                optTable, druidTable, ImmutableList.<RelNode> of(scan));
+          } else if (tableType == TableType.JDBC) {
+            LOG.debug("JDBC is running");
+
+            final String url = tabMetaData.getProperty("hive.sql.jdbc.url");
+            final String driver = tabMetaData.getProperty("hive.sql.jdbc.driver");
+            final String user = tabMetaData.getProperty("hive.sql.dbcp.username");
+            final String pswd = tabMetaData.getProperty("hive.sql.dbcp.password");
+            final String tbl = tabMetaData.getProperty("hive.sql.table");
+            // MetaStoreUtils.getTableMetadata(tabMetaData.getTTable());
+            // Properties res = SerDeUtils.createOverlayedProperties(null, null);
+            // Configuration tableConfig =
+            // JdbcStorageConfigManager.convertPropertiesToConfiguration(res);
+            // Properties props = getConnectionPoolProperties(conf);
+            // DataSource ds = BasicDataSourceFactory.createDataSource(props);
+            // Properties dbProperties = new Properties();
+            // java.sql.DriverManager.registerDriver(new JethroDriver());
+
+            DataSource ds = JdbcSchema.dataSource(url, driver, user, pswd);
+
+            // DataSource ds =
+            // new DriverDataSource("jdbc:JethroData://jonathan.dynqa.com:9111/sanity_tpcds",
+            // "com.jethrodata.JethroDriver", dbProperties, "jethro", "jethro");
+            JdbcConvention jc = new JdbcConvention(JethrodataSqlDialect.DEFAULT,
+                null/* Expression */, "JdbcConventionName");
+            JdbcSchema schema = new JdbcSchema(ds, JethrodataSqlDialect.DEFAULT, jc,
+                ""/* empty catalog */, null/* empty schema */);
+            JdbcTable jt = (JdbcTable) schema.getTable(tbl.toLowerCase());// TODOY how can i extract
+                                                                          // it from
+
+            // TODO Create case sensitive columns list
+            tableRel = jt.toRel(RelOptUtil.getContext(cluster), optTable);
           }
-          // TODO: Default interval will be an Interval once Calcite 1.15.0 is released.
-          // We will need to update the type of this list.
-          List<LocalInterval> intervals = Arrays.asList(DruidTable.DEFAULT_INTERVAL);
-
-          DruidTable druidTable = new DruidTable(new DruidSchema(address, address, false),
-                  dataSource, RelDataTypeImpl.proto(rowType), metrics, DruidTable.DEFAULT_TIMESTAMP_COLUMN,
-                  intervals, null, null);
-          final TableScan scan = new HiveTableScan(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION),
-                  optTable, null == tableAlias ? tabMetaData.getTableName() : tableAlias,
-                  getAliasId(tableAlias, qb), HiveConf.getBoolVar(conf,
-                      HiveConf.ConfVars.HIVE_CBO_RETPATH_HIVEOP), qb.isInsideView()
-                      || qb.getAliasInsideView().contains(tableAlias.toLowerCase()));
-          tableRel = DruidQuery.create(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION),
-              optTable, druidTable, ImmutableList.<RelNode>of(scan));
-        } else if (false && tableType == TableType.JDBC) {
-          LOG.debug("JDBC is running");
-
-          /*Properties dbProperties = new Properties(); // TODO add user name and password
-          dbProperties.put("initialSize", "1");
-          dbProperties.put("maxActive", "3");
-          dbProperties.put("maxIdle", "0");
-          dbProperties.put("maxWait", "10000");
-          dbProperties.put("timeBetweenEvictionRunsMillis", "30000");
-          dbProperties.put("url", "jdbc:JethroData://jonathan.dynqa.com:9111/sanity_tpcds");
-          dbProperties.put("driverClassName", "com.jethrodata.JethroDriver");
-          dbProperties.put("type", "javax.sql.DataSource");
-          DataSource ds = BasicDataSourceFactory.createDataSource(dbProperties);
-          new DriverDataSource("jdbc:JethroData://jonathan.dynqa.com:9111/sanity_tpcds",
-              "com.jethrodata.JethroDriver", dbProperties, "jethro", "jethro");
-          new JdbcSchema(ds, null, null, null, null);*/
 
         } else {
           // Build row type from field <type, name>

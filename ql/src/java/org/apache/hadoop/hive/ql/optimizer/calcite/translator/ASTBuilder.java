@@ -23,6 +23,7 @@ import org.apache.calcite.adapter.druid.DruidQuery;
 import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.JoinRelType;
+import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.DateString;
@@ -60,14 +61,20 @@ public class ASTBuilder {
   }
 
   public static ASTNode table(RelNode scan) {
-    HiveTableScan hts;
-    if (scan instanceof DruidQuery) {
-      hts = (HiveTableScan) ((DruidQuery)scan).getTableScan();
+    TableScan ts = null;// TODOY how can I convert JdbcTableScan to HiveTableScan?
+    HiveTableScan hts = null;
+    JdbcTableScan jts = null;
+    
+    if (scan instanceof JdbcTableScan) {
+      ts = jts = (JdbcTableScan) scan;// TODO use as HiveTableScan
+    } else if (scan instanceof DruidQuery) {
+      ts = hts = (HiveTableScan) ((DruidQuery) scan).getTableScan();
     } else {
-      hts = (HiveTableScan) scan;
+      ts = hts = (HiveTableScan) scan;
     }
-
-    RelOptHiveTable hTbl = (RelOptHiveTable) hts.getTable();
+    assert ts != null;
+    assert hts != null || jts != null;
+    RelOptHiveTable hTbl = (RelOptHiveTable) ts.getTable();
     ASTBuilder b = ASTBuilder.construct(HiveParser.TOK_TABREF, "TOK_TABREF").add(
         ASTBuilder.construct(HiveParser.TOK_TABNAME, "TOK_TABNAME")
             .add(HiveParser.Identifier, hTbl.getHiveTableMD().getDbName())
@@ -84,16 +91,15 @@ public class ASTBuilder {
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_TYPE + "\"")
               .add(HiveParser.StringLiteral, "\"" + dq.getQueryType().getQueryName() + "\""));
-    } else if (scan instanceof JdbcTableScan) {// TODOY 35:30
-      JdbcTableScan jq = (JdbcTableScan) scan;
+    } else if (jts != null) {// TODOY 35:30
 
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
           .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
               .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(
-              jq.jdbcTable.toString()) + "\""));
+              "select * from " + jts.jdbcTable.jdbcTableName/* TODOY use the query! */) + "\""));
     }
 
-    if (hts.isInsideView()) {
+    if (hts != null && hts.isInsideView()) {
       // We need to carry the insideView information from calcite into the ast.
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"insideView\"")
@@ -107,7 +113,13 @@ public class ASTBuilder {
     // However in HIVE DB name can not appear in select list; in case of join
     // where table names differ only in DB name, Hive would require user
     // introducing explicit aliases for tbl.
-    b.add(HiveParser.Identifier, hts.getTableAlias());
+    String tableName = "";
+    if (hts != null) {
+      tableName = hts.getTableAlias();
+    } else if (jts != null) {
+      tableName = jts.jdbcTable.jdbcTableName;
+    }
+    b.add(HiveParser.Identifier, tableName);
     return b.node();
   }
 

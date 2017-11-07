@@ -27,6 +27,7 @@ import java.util.TreeMap;
 
 
 import org.apache.calcite.adapter.druid.DruidQuery;
+import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.rel.RelFieldCollation;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelVisitor;
@@ -340,7 +341,11 @@ public class ASTConverter {
     Schema s = null;
     ASTNode ast = null;
 
-    if (r instanceof TableScan) {
+    if (r instanceof JdbcTableScan) {
+      JdbcTableScan f = (JdbcTableScan) r;
+      s = new Schema(f);
+      ast = ASTBuilder.table(f);
+    } else if (r instanceof TableScan) {
       TableScan f = (TableScan) r;
       s = new Schema(f);
       ast = ASTBuilder.table(f);
@@ -737,6 +742,13 @@ public class ASTConverter {
       HiveTableScan hts = (HiveTableScan) ((DruidQuery)dq).getTableScan();
       String tabName = hts.getTableAlias();
       for (RelDataTypeField field : dq.getRowType().getFieldList()) {
+        add(new ColumnInfo(tabName, field.getName()));
+      }
+    }
+
+    Schema(JdbcTableScan scan) {
+      String tabName = scan.jdbcTable.jdbcTableName;
+      for (RelDataTypeField field : scan.getRowType().getFieldList()) {
         add(new ColumnInfo(tabName, field.getName()));
       }
     }
