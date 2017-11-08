@@ -34,6 +34,7 @@ import org.apache.hadoop.hive.common.type.HiveIntervalYearMonth;
 import org.apache.hadoop.hive.conf.Constants;
 import org.apache.hadoop.hive.ql.optimizer.calcite.RelOptHiveTable;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveTableScan;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.JdbcHiveTableScan;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
@@ -60,21 +61,21 @@ public class ASTBuilder {
                 "TOK_TMP_FILE")).node();
   }
 
-  public static ASTNode table(RelNode scan) {
-    TableScan ts = null;// TODOY how can I convert JdbcTableScan to HiveTableScan?
+  public static ASTNode table(final RelNode scan) {
     HiveTableScan hts = null;
-    JdbcTableScan jts = null;
+    JdbcHiveTableScan jts = null;
     
-    if (scan instanceof JdbcTableScan) {
-      ts = jts = (JdbcTableScan) scan;// TODO use as HiveTableScan
+    if (scan instanceof JdbcHiveTableScan) {
+      jts = ((JdbcHiveTableScan) scan);// TODO use as HiveTableScan
+      hts = jts.getHiveTableScan();
     } else if (scan instanceof DruidQuery) {
-      ts = hts = (HiveTableScan) ((DruidQuery) scan).getTableScan();
+      hts = (HiveTableScan) ((DruidQuery) scan).getTableScan();
     } else {
-      ts = hts = (HiveTableScan) scan;
+      hts = (HiveTableScan) scan;
     }
-    assert ts != null;
-    assert hts != null || jts != null;
-    RelOptHiveTable hTbl = (RelOptHiveTable) ts.getTable();
+
+    assert hts != null;
+    RelOptHiveTable hTbl = (RelOptHiveTable) hts.getTable();
     ASTBuilder b = ASTBuilder.construct(HiveParser.TOK_TABREF, "TOK_TABREF").add(
         ASTBuilder.construct(HiveParser.TOK_TABNAME, "TOK_TABNAME")
             .add(HiveParser.Identifier, hTbl.getHiveTableMD().getDbName())
@@ -96,15 +97,16 @@ public class ASTBuilder {
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
           .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
               .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(
-              "select * from " + jts.jdbcTable.jdbcTableName/* TODOY use the query! */) + "\""));
+              ((JdbcHiveTableScan) scan).getJdbcQueryString()/* TODOY use the query! */) + "\""));
     }
 
-    if (hts != null && hts.isInsideView()) {
+    if (hts.isInsideView()) {
       // We need to carry the insideView information from calcite into the ast.
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"insideView\"")
               .add(HiveParser.StringLiteral, "\"TRUE\""));
     }
+    
     b.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTIES, "TOK_TABLEPROPERTIES").add(propList));
 
     // NOTE: Calcite considers tbls to be equal if their names are the same. Hence
@@ -114,10 +116,10 @@ public class ASTBuilder {
     // where table names differ only in DB name, Hive would require user
     // introducing explicit aliases for tbl.
     String tableName = "";
-    if (hts != null) {
-      tableName = hts.getTableAlias();
-    } else if (jts != null) {
+    if (jts != null) {
       tableName = jts.jdbcTable.jdbcTableName;
+    } else {
+      tableName = hts.getTableAlias();
     }
     b.add(HiveParser.Identifier, tableName);
     return b.node();

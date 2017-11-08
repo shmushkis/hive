@@ -58,6 +58,7 @@ import org.apache.calcite.adapter.druid.LocalInterval;
 import org.apache.calcite.adapter.jdbc.JdbcConvention;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.adapter.jdbc.JdbcTable;
+import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -185,6 +186,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveSortLimit;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveTableFunctionScan;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveTableScan;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveUnion;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.JdbcHiveTableScan;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveAggregateJoinTransposeRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveAggregateProjectMergeRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveAggregatePullUpConstantsRule;
@@ -2398,6 +2400,14 @@ public class CalcitePlanner extends SemanticAnalyzer {
           RelOptHiveTable optTable = new RelOptHiveTable(relOptSchema, fullyQualifiedTabName,
               rowType, tabMetaData, nonPartitionColumns, partitionColumns, virtualCols, conf,
               partitionCache, colStatsCache, noColsMissingStats);
+          
+          final HiveTableScan hts = new HiveTableScan(cluster,
+              cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
+              null == tableAlias ? tabMetaData.getTableName() : tableAlias,
+                getAliasId(tableAlias, qb),
+                HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_CBO_RETPATH_HIVEOP),
+                qb.isInsideView() || qb.getAliasInsideView().contains(tableAlias.toLowerCase()));
+          
           if (tableType == TableType.DRUID) {
             // Build Druid query
             String address =
@@ -2423,17 +2433,12 @@ public class CalcitePlanner extends SemanticAnalyzer {
             // We will need to update the type of this list.
             List<LocalInterval> intervals = Arrays.asList(DruidTable.DEFAULT_INTERVAL);
 
+            
             DruidTable druidTable = new DruidTable(new DruidSchema(address, address, false),
                 dataSource, RelDataTypeImpl.proto(rowType), metrics,
                 DruidTable.DEFAULT_TIMESTAMP_COLUMN, intervals, null, null);
-            final TableScan scan = new HiveTableScan(cluster,
-                cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
-                null == tableAlias ? tabMetaData.getTableName() : tableAlias,
-                getAliasId(tableAlias, qb),
-                HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_CBO_RETPATH_HIVEOP),
-                qb.isInsideView() || qb.getAliasInsideView().contains(tableAlias.toLowerCase()));
             tableRel = DruidQuery.create(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION),
-                optTable, druidTable, ImmutableList.<RelNode> of(scan));
+                optTable, druidTable, ImmutableList.<RelNode> of(hts));
           } else if (tableType == TableType.JDBC) {
             LOG.debug("JDBC is running");
 
@@ -2452,8 +2457,15 @@ public class CalcitePlanner extends SemanticAnalyzer {
                 ""/* empty catalog */, null/* empty schema */);
             JdbcTable jt = (JdbcTable) schema.getTable(tbl.toLowerCase());
 
-            // TODO Create case sensitive columns list
-            tableRel = jt.toRel(RelOptUtil.getContext(cluster), optTable);
+            //(JdbcTableScan) jt.toRel(RelOptUtil.getContext(cluster), optTable);
+            JdbcHiveTableScan jdbcTableRel = new JdbcHiveTableScan (cluster, optTable, jt, jc);
+            jdbcTableRel.setHiveTableScan(hts);
+            jdbcTableRel.setJdbcQueryString(query);
+            //tableRel = new JdbcQuery(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
+            //    jt, ImmutableList.<RelNode> of(jdbcTableRel), query);
+            tableRel = jdbcTableRel;
+
+            
           }
 
         } else {

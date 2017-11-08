@@ -68,6 +68,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveGroupingID;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveSortLimit;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveTableFunctionScan;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveTableScan;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.JdbcHiveTableScan;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.SqlFunctionConverter.HiveToken;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
@@ -341,8 +342,8 @@ public class ASTConverter {
     Schema s = null;
     ASTNode ast = null;
 
-    if (r instanceof JdbcTableScan) {
-      JdbcTableScan f = (JdbcTableScan) r;
+    if (r instanceof JdbcHiveTableScan) {
+      JdbcHiveTableScan f = (JdbcHiveTableScan) r;
       s = new Schema(f);
       ast = ASTBuilder.table(f);
     } else if (r instanceof TableScan) {
@@ -746,8 +747,9 @@ public class ASTConverter {
       }
     }
 
-    Schema(JdbcTableScan scan) {
-      String tabName = scan.jdbcTable.jdbcTableName;
+    Schema(JdbcHiveTableScan scan) {
+      JdbcTableScan hts = (JdbcHiveTableScan) (scan);
+      String tabName = hts.jdbcTable.jdbcTableName;
       for (RelDataTypeField field : scan.getRowType().getFieldList()) {
         add(new ColumnInfo(tabName, field.getName()));
       }

@@ -13,4 +13,5 @@ TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
                 "hive.sql.column.mapping" = "X=x",
                 "hive.sql.dbcp.maxActive" = "1");
 select * from mytable2 where x=10;
+select sum(x) from mytable2;
 
