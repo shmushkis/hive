@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.hive.metastore;
 
+import org.apache.hadoop.hive.metastore.api.WMFullResourcePlan;
+
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -951,7 +953,8 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public void createResourcePlan(WMResourcePlan resourcePlan) throws MetaException {
+  public void createResourcePlan(
+      WMResourcePlan resourcePlan, int defaultPoolSize) throws MetaException {
   }
 
   @Override
@@ -965,8 +968,15 @@ public class DummyRawStoreForJdoConnection implements RawStore {
   }
 
   @Override
-  public void alterResourcePlan(String name, WMResourcePlan resourcePlan)
+  public WMFullResourcePlan alterResourcePlan(
+      String name, WMResourcePlan resourcePlan, boolean canActivateDisabled)
       throws NoSuchObjectException, InvalidOperationException, MetaException {
+    return null;
+  }
+
+  @Override
+  public WMFullResourcePlan getActiveResourcePlan() throws MetaException {
+    return null;
   }
 
   @Override

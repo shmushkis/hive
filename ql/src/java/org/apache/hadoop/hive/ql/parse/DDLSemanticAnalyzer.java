@@ -93,8 +93,10 @@ import org.apache.hadoop.hive.ql.plan.AlterTableDesc.AlterTableTypes;
 import org.apache.hadoop.hive.ql.plan.AlterTableExchangePartition;
 import org.apache.hadoop.hive.ql.plan.AlterTableSimpleDesc;
 import org.apache.hadoop.hive.ql.plan.AlterWMTriggerDesc;
+import org.apache.hadoop.hive.ql.plan.BasicStatsWork;
 import org.apache.hadoop.hive.ql.plan.CacheMetadataDesc;
 import org.apache.hadoop.hive.ql.plan.ColumnStatsUpdateWork;
+import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.CreateDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.CreateIndexDesc;
 import org.apache.hadoop.hive.ql.plan.CreateResourcePlanDesc;
@@ -140,7 +142,6 @@ import org.apache.hadoop.hive.ql.plan.ShowTableStatusDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTablesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTblPropertiesDesc;
 import org.apache.hadoop.hive.ql.plan.ShowTxnsDesc;
-import org.apache.hadoop.hive.ql.plan.StatsWork;
 import org.apache.hadoop.hive.ql.plan.SwitchDatabaseDesc;
 import org.apache.hadoop.hive.ql.plan.TableDesc;
 import org.apache.hadoop.hive.ql.plan.TruncateTableDesc;
@@ -880,49 +881,75 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
   }
 
   private void analyzeAlterResourcePlan(ASTNode ast) throws SemanticException {
-    if (ast.getChildCount() == 0) {
-      throw new SemanticException("Expected name in ALTER RESOURCE PLAN statement");
-    }
-    String rpName = unescapeIdentifier(ast.getChild(0).getText());
     if (ast.getChildCount() < 2) {
       throw new SemanticException("Invalid syntax for ALTER RESOURCE PLAN statement");
     }
-    AlterResourcePlanDesc desc;
-    switch (ast.getChild(1).getType()) {
-    case HiveParser.TOK_VALIDATE:
-      desc = AlterResourcePlanDesc.createValidatePlan(rpName);
-      break;
-    case HiveParser.TOK_ACTIVATE:
-      desc = AlterResourcePlanDesc.createChangeStatus(rpName, WMResourcePlanStatus.ACTIVE);
-      break;
-    case HiveParser.TOK_ENABLE:
-      desc = AlterResourcePlanDesc.createChangeStatus(rpName, WMResourcePlanStatus.ENABLED);
-      break;
-    case HiveParser.TOK_DISABLE:
-      desc = AlterResourcePlanDesc.createChangeStatus(rpName, WMResourcePlanStatus.DISABLED);
-      break;
-    case HiveParser.TOK_QUERY_PARALLELISM:
-      if (ast.getChildCount() != 3) {
+    String rpName = unescapeIdentifier(ast.getChild(0).getText());
+    AlterResourcePlanDesc desc = null;
+    for (int i = 1; i < ast.getChildCount(); ++i) {
+      Tree child = ast.getChild(i);
+      switch (child.getType()) {
+      case HiveParser.TOK_VALIDATE:
+        if (desc != null) throw new SemanticException("Invalid ALTER VALIDATE command");
+        desc = AlterResourcePlanDesc.createValidatePlan(rpName);
+        break;
+      case HiveParser.TOK_ACTIVATE:
+        if (desc == null) {
+          desc = AlterResourcePlanDesc.createChangeStatus(rpName, WMResourcePlanStatus.ACTIVE);
+        } else if (desc.getStatus() == WMResourcePlanStatus.ENABLED) {
+          desc.setIsEnableActivate(true);
+          desc.setStatus(WMResourcePlanStatus.ACTIVE);
+        } else {
+          throw new SemanticException("Invalid ALTER ACTIVATE command");
+        }
+        break;
+      case HiveParser.TOK_ENABLE:
+        if (desc == null) {
+          desc = AlterResourcePlanDesc.createChangeStatus(rpName, WMResourcePlanStatus.ENABLED);
+        } else if (desc.getStatus() == WMResourcePlanStatus.ACTIVE) {
+          desc.setIsEnableActivate(true);
+        } else {
+          throw new SemanticException("Invalid ALTER ENABLE command");
+        }
+        break;
+      case HiveParser.TOK_DISABLE:
+        if (desc != null) throw new SemanticException("Invalid ALTER DISABLE command");
+        desc = AlterResourcePlanDesc.createChangeStatus(rpName, WMResourcePlanStatus.DISABLED);
+        break;
+      case HiveParser.TOK_QUERY_PARALLELISM:
+        if (child.getChildCount() != 1) {
+          throw new SemanticException("Expected one argument");
+        }
+        if (desc == null) {
+          desc = AlterResourcePlanDesc.createSet(rpName);
+        }
+        desc.setQueryParallelism(Integer.parseInt(child.getChild(0).getText()));
+        break;
+      case HiveParser.TOK_DEFAULT_POOL:
+        if (child.getChildCount() != 1) {
+          throw new SemanticException("Expected one argument");
+        }
+        if (desc == null) {
+          desc = AlterResourcePlanDesc.createSet(rpName);
+        }
+        desc.setDefaultPoolPath(child.getChild(0).getText());
+        break;
+      case HiveParser.TOK_RENAME:
+        if (desc != null) throw new SemanticException("Invalid ALTER RENAME command");
+        if (ast.getChildCount() == (i + 1)) {
+          throw new SemanticException("Expected an argument");
+        }
+        if (desc == null) {
+          desc = AlterResourcePlanDesc.createSet(rpName);
+        }
+        desc.setNewName(ast.getChild(++i).getText());
+        break;
+      default:
         throw new SemanticException(
-            "Expected number for query parallelism in alter resource plan statment");
+          "Unexpected token in alter resource plan statement: " + child.getType());
       }
-      int queryParallelism = Integer.parseInt(ast.getChild(2).getText());
-      desc = AlterResourcePlanDesc.createChangeParallelism(rpName, queryParallelism);
-      break;
-    case HiveParser.TOK_RENAME:
-      if (ast.getChildCount() != 3) {
-        throw new SemanticException(
-            "Expected new name for rename in alter resource plan statment");
-      }
-      String name = ast.getChild(2).getText();
-      desc = AlterResourcePlanDesc.createRenamePlan(rpName, name);
-      break;
-    default:
-      throw new SemanticException("Unexpected token in alter resource plan statement: "
-          + ast.getChild(1).getType());
     }
-    rootTasks.add(TaskFactory.get(
-        new DDLWork(getInputs(), getOutputs(), desc), conf));
+    rootTasks.add(TaskFactory.get(new DDLWork(getInputs(), getOutputs(), desc), conf));
   }
 
   private void analyzeDropResourcePlan(ASTNode ast) throws SemanticException {
@@ -1298,18 +1325,19 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
 
         // Recalculate the HDFS stats if auto gather stats is set
         if (conf.getBoolVar(HiveConf.ConfVars.HIVESTATSAUTOGATHER)) {
-          StatsWork statDesc;
+          BasicStatsWork basicStatsWork;
           if (oldTblPartLoc.equals(newTblPartLoc)) {
             // If we're merging to the same location, we can avoid some metastore calls
             TableSpec tablepart = new TableSpec(this.db, conf, root);
-            statDesc = new StatsWork(tablepart);
+            basicStatsWork = new BasicStatsWork(tablepart);
           } else {
-            statDesc = new StatsWork(ltd);
+            basicStatsWork = new BasicStatsWork(ltd);
           }
-          statDesc.setNoStatsAggregator(true);
-          statDesc.setClearAggregatorStats(true);
-          statDesc.setStatsReliable(conf.getBoolVar(HiveConf.ConfVars.HIVE_STATS_RELIABLE));
-          Task<? extends Serializable> statTask = TaskFactory.get(statDesc, conf);
+          basicStatsWork.setNoStatsAggregator(true);
+          basicStatsWork.setClearAggregatorStats(true);
+          StatsWork columnStatsWork = new StatsWork(table, basicStatsWork, conf);
+
+          Task<? extends Serializable> statTask = TaskFactory.get(columnStatsWork, conf);
           moveTsk.addDependentTask(statTask);
         }
       } catch (HiveException e) {
@@ -1642,7 +1670,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     alterTblDesc.setEnvironmentContext(environmentContext);
     alterTblDesc.setOldName(tableName);
 
-    boolean isPotentialMmSwitch = mapProp.containsKey(hive_metastoreConstants.TABLE_IS_TRANSACTIONAL)
+    boolean isPotentialMmSwitch = AcidUtils.isTablePropertyTransactional(mapProp)
         || mapProp.containsKey(hive_metastoreConstants.TABLE_TRANSACTIONAL_PROPERTIES);
     addInputsOutputsAlterTable(tableName, partSpec, alterTblDesc, isPotentialMmSwitch);
 
@@ -1957,18 +1985,19 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
       mergeTask.addDependentTask(moveTsk);
 
       if (conf.getBoolVar(HiveConf.ConfVars.HIVESTATSAUTOGATHER)) {
-        StatsWork statDesc;
+        BasicStatsWork basicStatsWork;
         if (oldTblPartLoc.equals(newTblPartLoc)) {
           // If we're merging to the same location, we can avoid some metastore calls
           TableSpec tableSpec = new TableSpec(db, tableName, partSpec);
-          statDesc = new StatsWork(tableSpec);
+          basicStatsWork = new BasicStatsWork(tableSpec);
         } else {
-          statDesc = new StatsWork(ltd);
+          basicStatsWork = new BasicStatsWork(ltd);
         }
-        statDesc.setNoStatsAggregator(true);
-        statDesc.setClearAggregatorStats(true);
-        statDesc.setStatsReliable(conf.getBoolVar(HiveConf.ConfVars.HIVE_STATS_RELIABLE));
-        Task<? extends Serializable> statTask = TaskFactory.get(statDesc, conf);
+        basicStatsWork.setNoStatsAggregator(true);
+        basicStatsWork.setClearAggregatorStats(true);
+        StatsWork columnStatsWork = new StatsWork(tblObj, basicStatsWork, conf);
+
+        Task<? extends Serializable> statTask = TaskFactory.get(columnStatsWork, conf);
         moveTsk.addDependentTask(statTask);
       }
 
@@ -2070,7 +2099,7 @@ public class DDLSemanticAnalyzer extends BaseSemanticAnalyzer {
     switch (child.getToken().getType()) {
       case HiveParser.TOK_UNIQUE:
         BaseSemanticAnalyzer.processUniqueConstraints(qualifiedTabName[0], qualifiedTabName[1],
-                child, uniqueConstraints);        
+                child, uniqueConstraints);
         break;
       case HiveParser.TOK_PRIMARY_KEY:
         BaseSemanticAnalyzer.processPrimaryKeys(qualifiedTabName[0], qualifiedTabName[1],

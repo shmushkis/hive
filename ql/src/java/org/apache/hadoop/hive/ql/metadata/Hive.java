@@ -27,6 +27,8 @@ import static org.apache.hadoop.hive.serde.serdeConstants.MAPKEY_DELIM;
 import static org.apache.hadoop.hive.serde.serdeConstants.SERIALIZATION_FORMAT;
 import static org.apache.hadoop.hive.serde.serdeConstants.STRING_TYPE_NAME;
 
+import org.apache.hadoop.hive.metastore.api.WMFullResourcePlan;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -1792,7 +1794,9 @@ public class Hive {
       }
 
       // column stats will be inaccurate
-      StatsSetupConst.clearColumnStatsState(newTPart.getParameters());
+      if (!hasFollowingStatsTask) {
+        StatsSetupConst.clearColumnStatsState(newTPart.getParameters());
+      }
 
       // recreate the partition if it existed before
       if (isSkewedStoreAsSubdir) {
@@ -1811,8 +1815,8 @@ public class Hive {
       if (oldPart == null) {
         newTPart.getTPartition().setParameters(new HashMap<String,String>());
         if (this.getConf().getBoolVar(HiveConf.ConfVars.HIVESTATSAUTOGATHER)) {
-          StatsSetupConst.setStatsStateForCreateTable(newTPart.getParameters(), null,
-              StatsSetupConst.TRUE);
+          StatsSetupConst.setStatsStateForCreateTable(newTPart.getParameters(),
+              MetaStoreUtils.getColumnNames(tbl.getCols()), StatsSetupConst.TRUE);
         }
         MetaStoreUtils.populateQuickStats(HiveStatsUtils.getFileStatusRecurse(newPartPath, -1, newPartPath.getFileSystem(conf)), newTPart.getParameters());
         try {
@@ -2297,7 +2301,9 @@ private void constructOneLBLocationMap(FileStatus fSta,
     }
 
     //column stats will be inaccurate
-    StatsSetupConst.clearColumnStatsState(tbl.getParameters());
+    if (!hasFollowingStatsTask) {
+      StatsSetupConst.clearColumnStatsState(tbl.getParameters());
+    }
 
     try {
       if (isSkewedStoreAsSubdir) {
@@ -4734,9 +4740,18 @@ private void constructOneLBLocationMap(FileStatus fSta,
     }
   }
 
-  public void alterResourcePlan(String rpName, WMResourcePlan resourcePlan) throws HiveException {
+  public WMFullResourcePlan alterResourcePlan(String rpName, WMResourcePlan resourcePlan,
+      boolean canActivateDisabled) throws HiveException {
     try {
-      getMSC().alterResourcePlan(rpName, resourcePlan);
+      return getMSC().alterResourcePlan(rpName, resourcePlan, canActivateDisabled);
+    } catch (Exception e) {
+      throw new HiveException(e);
+    }
+  }
+
+  public WMFullResourcePlan getActiveResourcePlan() throws HiveException {
+    try {
+      return getMSC().getActiveResourcePlan();
     } catch (Exception e) {
       throw new HiveException(e);
     }

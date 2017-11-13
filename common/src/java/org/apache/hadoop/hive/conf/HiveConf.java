@@ -288,7 +288,8 @@ public class HiveConf extends Configuration {
       HiveConf.ConfVars.METASTORE_AGGREGATE_STATS_CACHE_MAX_FULL,
       HiveConf.ConfVars.METASTORE_AGGREGATE_STATS_CACHE_CLEAN_UNTIL,
       HiveConf.ConfVars.METASTORE_FASTPATH,
-      HiveConf.ConfVars.METASTORE_HBASE_FILE_METADATA_THREADS
+      HiveConf.ConfVars.METASTORE_HBASE_FILE_METADATA_THREADS,
+      HiveConf.ConfVars.METASTORE_WM_DEFAULT_POOL_SIZE
       };
 
   /**
@@ -669,7 +670,12 @@ public class HiveConf extends Configuration {
     METASTORE_TCP_KEEP_ALIVE("hive.metastore.server.tcp.keepalive", true,
         "Whether to enable TCP keepalive for the metastore server. Keepalive will prevent accumulation of half-open connections."),
 
-    METASTORE_INT_ORIGINAL("hive.metastore.archive.intermediate.original",
+    METASTORE_WM_DEFAULT_POOL_SIZE("hive.metastore.wm.default.pool.size", 4,
+        "The size of a default pool to create when creating an empty resource plan;\n" +
+        "If not positive, no default pool will be created."),
+
+
+   METASTORE_INT_ORIGINAL("hive.metastore.archive.intermediate.original",
         "_INTERMEDIATE_ORIGINAL",
         "Intermediate dir suffixes used for archiving. Not important what they\n" +
         "are, as long as collisions are avoided"),
@@ -1456,11 +1462,6 @@ public class HiveConf extends Configuration {
         "Insert queries are not restricted by this limit."),
     HIVELIMITPUSHDOWNMEMORYUSAGE("hive.limit.pushdown.memory.usage", 0.1f, new RatioValidator(),
         "The fraction of available memory to be used for buffering rows in Reducesink operator for limit pushdown optimization."),
-
-    @Deprecated
-    HIVELIMITTABLESCANPARTITION("hive.limit.query.max.table.partition", -1,
-        "This controls how many partitions can be scanned for each partitioned table.\n" +
-        "The default value \"-1\" means no limit. (DEPRECATED: Please use " + ConfVars.METASTORE_LIMIT_PARTITION_REQUEST + " in the metastore instead.)"),
 
     HIVECONVERTJOINMAXENTRIESHASHTABLE("hive.auto.convert.join.hashtable.max.entries", 21000000L,
         "If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. \n" +
@@ -2459,6 +2460,17 @@ public class HiveConf extends Configuration {
         "  EXECUTION: Log completion of tasks\n" +
         "  PERFORMANCE: Execution + Performance logs \n" +
         "  VERBOSE: All logs" ),
+
+    // HS2 connections guard rails
+    HIVE_SERVER2_LIMIT_CONNECTIONS_PER_USER("hive.server2.limit.connections.per.user", 0,
+      "Maximum hive server2 connections per user. Any user exceeding this limit will not be allowed to connect. " +
+        "Default=0 does not enforce limits."),
+    HIVE_SERVER2_LIMIT_CONNECTIONS_PER_IPADDRESS("hive.server2.limit.connections.per.ipaddress", 0,
+      "Maximum hive server2 connections per ipaddress. Any ipaddress exceeding this limit will not be allowed " +
+        "to connect. Default=0 does not enforce limits."),
+    HIVE_SERVER2_LIMIT_CONNECTIONS_PER_USER_IPADDRESS("hive.server2.limit.connections.per.user.ipaddress", 0,
+      "Maximum hive server2 connections per user:ipaddress combination. Any user-ipaddress exceeding this limit will " +
+        "not be allowed to connect. Default=0 does not enforce limits."),
 
     // Enable metric collection for HiveServer2
     HIVE_SERVER2_METRICS_ENABLED("hive.server2.metrics.enabled", false, "Enable metrics on the HiveServer2."),
@@ -3585,11 +3597,6 @@ public class HiveConf extends Configuration {
 
     HIVE_EXEC_INPUT_LISTING_MAX_THREADS("hive.exec.input.listing.max.threads", 0, new  SizeValidator(0L, true, 1024L, true),
         "Maximum number of threads that Hive uses to list file information from file systems (recommended > 1 for blobstore)."),
-
-    HIVE_EXEC_MOVE_FILES_FROM_SOURCE_DIR("hive.exec.move.files.from.source.dir", false,
-        "When moving/renaming a directory from source to destination, individually move each \n" +
-        "file in the source directory, rather than renaming the source directory. This may \n" +
-        "help protect against files written to temp directories by runaway task attempts."),
 
     /* BLOBSTORE section */
 
