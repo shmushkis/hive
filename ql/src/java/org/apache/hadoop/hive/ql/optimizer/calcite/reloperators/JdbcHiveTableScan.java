@@ -19,13 +19,16 @@ package org.apache.hadoop.hive.ql.optimizer.calcite.reloperators;
 
 import java.util.List;
 
+import org.apache.calcite.adapter.java.JavaTypeFactory;
 import org.apache.calcite.adapter.jdbc.JdbcConvention;
+import org.apache.calcite.adapter.jdbc.JdbcImplementor;
 import org.apache.calcite.adapter.jdbc.JdbcTable;
 import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.sql.SqlDialect;
 
 /**
  * Relational expression representing a scan of a HiveDB collection.
@@ -37,11 +40,6 @@ import org.apache.calcite.rel.RelNode;
 public class JdbcHiveTableScan extends JdbcTableScan {
 
   private HiveTableScan hiveTableScan;
-  public  String        query;
-
-  public String getJdbcQueryString() {
-    return query;
-  }
 
   public JdbcHiveTableScan(RelOptCluster cluster, RelOptTable table, JdbcTable jdbcTable,
       JdbcConvention jdbcConvention) {
@@ -55,7 +53,6 @@ public class JdbcHiveTableScan extends JdbcTableScan {
         getCluster(), table, jdbcTable, (JdbcConvention) getConvention());
     res.setHiveTableScan((HiveTableScan) this.hiveTableScan.copy(traitSet, inputs));
     //res.setHiveTableScan(this.hiveTableScan);
-    res.setJdbcQueryString(query);
     return res;
   }
   
@@ -66,8 +63,14 @@ public class JdbcHiveTableScan extends JdbcTableScan {
   public void setHiveTableScan(HiveTableScan hiveTableScan) {
     this.hiveTableScan = hiveTableScan;
   }
-
-  public void setJdbcQueryString(String query) {
-    this.query = query;
+  
+  public String generateSql(SqlDialect dialect) {
+    final JdbcImplementor jdbcImplementor =
+        new JdbcImplementor(dialect,
+            (JavaTypeFactory) getCluster().getTypeFactory());
+    final JdbcImplementor.Result result =
+        jdbcImplementor.visitChild(0, this);
+    return result.asStatement().toSqlString(dialect).getSql();
   }
+
 }

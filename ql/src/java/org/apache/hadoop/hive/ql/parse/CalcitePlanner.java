@@ -58,7 +58,6 @@ import org.apache.calcite.adapter.druid.LocalInterval;
 import org.apache.calcite.adapter.jdbc.JdbcConvention;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.adapter.jdbc.JdbcTable;
-import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -67,7 +66,6 @@ import org.apache.calcite.plan.RelOptMaterialization;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptSchema;
-import org.apache.calcite.plan.RelOptTable.ToRelContext;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.plan.hep.HepMatchOrder;
@@ -79,14 +77,12 @@ import org.apache.calcite.rel.RelCollationImpl;
 import org.apache.calcite.rel.RelCollations;
 import org.apache.calcite.rel.RelFieldCollation;
 import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.RelRoot;
 import org.apache.calcite.rel.core.Aggregate;
 import org.apache.calcite.rel.core.AggregateCall;
 import org.apache.calcite.rel.core.Filter;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.Project;
 import org.apache.calcite.rel.core.SetOp;
-import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rel.metadata.CachingRelMetadataProvider;
 import org.apache.calcite.rel.metadata.ChainedRelMetadataProvider;
 import org.apache.calcite.rel.metadata.DefaultRelMetadataProvider;
@@ -115,7 +111,6 @@ import org.apache.calcite.rex.RexWindowBound;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.sql.SqlAggFunction;
 import org.apache.calcite.sql.SqlCall;
-import org.apache.calcite.sql.SqlDialect;
 import org.apache.calcite.sql.SqlExplainLevel;
 import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.SqlLiteral;
@@ -123,7 +118,6 @@ import org.apache.calcite.sql.SqlNode;
 import org.apache.calcite.sql.SqlOperator;
 import org.apache.calcite.sql.SqlWindow;
 import org.apache.calcite.sql.dialect.JethrodataSqlDialect;
-import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.calcite.sql.parser.SqlParserPos;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.tools.Frameworks;
@@ -131,15 +125,12 @@ import org.apache.calcite.util.CompositeList;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.ImmutableIntList;
 import org.apache.calcite.util.Pair;
-import org.apache.commons.dbcp.BasicDataSourceFactory;
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hive.common.ObjectPair;
 import org.apache.hadoop.hive.conf.Constants;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.conf.HiveConf.ConfVars;
 import org.apache.hadoop.hive.conf.HiveConf.StrictChecks;
-import org.apache.hadoop.hive.metastore.MetaStoreUtils;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.ErrorMsg;
 import org.apache.hadoop.hive.ql.QueryProperties;
@@ -281,7 +272,6 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.zaxxer.hikari.util.DriverDataSource;
 
 public class CalcitePlanner extends SemanticAnalyzer {
 
@@ -2446,7 +2436,7 @@ public class CalcitePlanner extends SemanticAnalyzer {
             final String driver = tabMetaData.getProperty("hive.sql.jdbc.driver");
             final String user = tabMetaData.getProperty("hive.sql.dbcp.username");
             final String pswd = tabMetaData.getProperty("hive.sql.dbcp.password");
-            final String query = tabMetaData.getProperty("hive.sql.query");
+            //final String query = tabMetaData.getProperty("hive.sql.query");
             final String tbl = tabMetaData.getProperty("hive.sql.table");
 
             final DataSource ds = JdbcSchema.dataSource(url, driver, user, pswd);
@@ -2454,15 +2444,17 @@ public class CalcitePlanner extends SemanticAnalyzer {
             JdbcConvention jc = new JdbcConvention(JethrodataSqlDialect.DEFAULT,
                 null/* Expression */, "JdbcConventionName");
             JdbcSchema schema = new JdbcSchema(ds, JethrodataSqlDialect.DEFAULT, jc,
-                ""/* empty catalog */, null/* empty schema */);
+                null/* empty catalog */, null/* empty schema */);
             JdbcTable jt = (JdbcTable) schema.getTable(tbl.toLowerCase());
 
             //(JdbcTableScan) jt.toRel(RelOptUtil.getContext(cluster), optTable);
             JdbcHiveTableScan jdbcTableRel = new JdbcHiveTableScan (cluster, optTable, jt, jc);
             jdbcTableRel.setHiveTableScan(hts);
-            jdbcTableRel.setJdbcQueryString(query);
+            //jdbcTableRel.setJdbcQueryString(/*ctx.getCmd()*/query);
             //tableRel = new JdbcQuery(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
             //    jt, ImmutableList.<RelNode> of(jdbcTableRel), query);
+            //m = new MyConverter ();
+            //m.add (jdbcTableScan);
             tableRel = jdbcTableRel;
 
             

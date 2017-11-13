@@ -20,11 +20,16 @@ package org.apache.hadoop.hive.ql.optimizer.calcite.translator;
 import java.math.BigDecimal;
 
 import org.apache.calcite.adapter.druid.DruidQuery;
+import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.adapter.jdbc.JdbcImplementor;
 import org.apache.calcite.adapter.jdbc.JdbcTableScan;
+import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rex.RexLiteral;
+import org.apache.calcite.sql.SqlDialect;
+import org.apache.calcite.sql.dialect.JethrodataSqlDialect;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.DateString;
 import org.apache.calcite.util.TimeString;
@@ -40,6 +45,8 @@ import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 import org.apache.hadoop.hive.ql.parse.SemanticAnalyzer;
+
+import jline.internal.Log;
 
 public class ASTBuilder {
 
@@ -60,12 +67,12 @@ public class ASTBuilder {
             ASTBuilder.construct(HiveParser.TOK_DIR, "TOK_DIR").add(HiveParser.TOK_TMP_FILE,
                 "TOK_TMP_FILE")).node();
   }
-
+  
   public static ASTNode table(final RelNode scan) {
     HiveTableScan hts = null;
-    JdbcHiveTableScan jts = null;
     
     if (scan instanceof JdbcHiveTableScan) {
+      JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;
       jts = ((JdbcHiveTableScan) scan);// TODO use as HiveTableScan
       hts = jts.getHiveTableScan();
     } else if (scan instanceof DruidQuery) {
@@ -92,12 +99,13 @@ public class ASTBuilder {
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_TYPE + "\"")
               .add(HiveParser.StringLiteral, "\"" + dq.getQueryType().getQueryName() + "\""));
-    } else if (jts != null) {// TODOY 35:30
-
+    } else if (scan instanceof JdbcHiveTableScan) {// TODOY 35:30
+      JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;//TODOY
+      final String query = jts.generateSql (JethrodataSqlDialect.DEFAULT);
+      Log.info("The JdbcHiveTableScan generated sql message is: " + query);
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
           .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
-              .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(
-              ((JdbcHiveTableScan) scan).getJdbcQueryString()/* TODOY use the query! */) + "\""));
+              .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
     }
 
     if (hts.isInsideView()) {
@@ -116,8 +124,9 @@ public class ASTBuilder {
     // where table names differ only in DB name, Hive would require user
     // introducing explicit aliases for tbl.
     String tableName = "";
-    if (jts != null) {
-      tableName = jts.jdbcTable.jdbcTableName;
+    if (scan instanceof JdbcHiveTableScan) {
+      JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;
+      tableName = jts.jdbcTable.jdbcTableName;//TODOY correct??
     } else {
       tableName = hts.getTableAlias();
     }
