@@ -39,20 +39,19 @@ import org.apache.calcite.sql.SqlDialect;
  */
 public class JdbcHiveTableScan extends JdbcTableScan {
 
-  private HiveTableScan hiveTableScan;
+  final private HiveTableScan hiveTableScan;
 
   public JdbcHiveTableScan(RelOptCluster cluster, RelOptTable table, JdbcTable jdbcTable,
-      JdbcConvention jdbcConvention) {
+      JdbcConvention jdbcConvention, HiveTableScan hiveTableScan) {
     super(cluster, table, jdbcTable, jdbcConvention);
+    this.hiveTableScan= hiveTableScan;
     // TODO Auto-generated constructor stub
   }
   
   @Override public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
     assert inputs.isEmpty();
     JdbcHiveTableScan res = new JdbcHiveTableScan(
-        getCluster(), table, jdbcTable, (JdbcConvention) getConvention());
-    res.setHiveTableScan((HiveTableScan) this.hiveTableScan.copy(traitSet, inputs));
-    //res.setHiveTableScan(this.hiveTableScan);
+        getCluster(), table, jdbcTable, (JdbcConvention) getConvention(), this.hiveTableScan);
     return res;
   }
   
@@ -60,17 +59,18 @@ public class JdbcHiveTableScan extends JdbcTableScan {
     return hiveTableScan;
   }
   
-  public void setHiveTableScan(HiveTableScan hiveTableScan) {
-    this.hiveTableScan = hiveTableScan;
-  }
-  
   public String generateSql(SqlDialect dialect) {
-    final JdbcImplementor jdbcImplementor =
-        new JdbcImplementor(dialect,
-            (JavaTypeFactory) getCluster().getTypeFactory());
+    final JdbcImplementor jdbcImplementor = getImplementor(dialect);
     final JdbcImplementor.Result result =
         jdbcImplementor.visitChild(0, this);
     return result.asStatement().toSqlString(dialect).getSql();
+  }
+
+  public JdbcImplementor getImplementor(SqlDialect dialect) {
+    final JdbcImplementor jdbcImplementor =
+        new JdbcImplementor(dialect,
+            (JavaTypeFactory) getCluster().getTypeFactory());
+    return jdbcImplementor;
   }
 
 }

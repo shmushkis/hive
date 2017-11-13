@@ -2391,11 +2391,14 @@ public class CalcitePlanner extends SemanticAnalyzer {
               rowType, tabMetaData, nonPartitionColumns, partitionColumns, virtualCols, conf,
               partitionCache, colStatsCache, noColsMissingStats);
           
+          //TODOY
+          //final org.apache.calcite.plan.Convention conv = (tableType == TableType.DRUID) ? HiveRelNode.CONVENTION : new JdbcConvention(JethrodataSqlDialect.DEFAULT, null, "JdbcConventionName");
+          
           final HiveTableScan hts = new HiveTableScan(cluster,
               cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
               null == tableAlias ? tabMetaData.getTableName() : tableAlias,
                 getAliasId(tableAlias, qb),
-                HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_CBO_RETPATH_HIVEOP),
+                HiveConf.getBoolVar(conf, HiveConf.ConfVars.HIVE_CBO_RETPATH_HIVEOP),//TODOY
                 qb.isInsideView() || qb.getAliasInsideView().contains(tableAlias.toLowerCase()));
           
           if (tableType == TableType.DRUID) {
@@ -2441,22 +2444,16 @@ public class CalcitePlanner extends SemanticAnalyzer {
 
             final DataSource ds = JdbcSchema.dataSource(url, driver, user, pswd);
 
-            JdbcConvention jc = new JdbcConvention(JethrodataSqlDialect.DEFAULT,
-                null/* Expression */, "JdbcConventionName");
+            JdbcConvention jc = JdbcConvention.JETHRO_DEFAULT_CONVENTION;
             JdbcSchema schema = new JdbcSchema(ds, JethrodataSqlDialect.DEFAULT, jc,
                 null/* empty catalog */, null/* empty schema */);
             JdbcTable jt = (JdbcTable) schema.getTable(tbl.toLowerCase());
 
             //(JdbcTableScan) jt.toRel(RelOptUtil.getContext(cluster), optTable);
-            JdbcHiveTableScan jdbcTableRel = new JdbcHiveTableScan (cluster, optTable, jt, jc);
-            jdbcTableRel.setHiveTableScan(hts);
-            //jdbcTableRel.setJdbcQueryString(/*ctx.getCmd()*/query);
-            //tableRel = new JdbcQuery(cluster, cluster.traitSetOf(HiveRelNode.CONVENTION), optTable,
-            //    jt, ImmutableList.<RelNode> of(jdbcTableRel), query);
+            JdbcHiveTableScan jdbcTableRel = new JdbcHiveTableScan (cluster, optTable, jt, jc, hts);
             //m = new MyConverter ();
             //m.add (jdbcTableScan);
             tableRel = jdbcTableRel;
-
             
           }
 

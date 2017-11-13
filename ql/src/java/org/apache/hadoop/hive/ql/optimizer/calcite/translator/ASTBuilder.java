@@ -45,10 +45,13 @@ import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
 import org.apache.hadoop.hive.ql.parse.ParseDriver;
 import org.apache.hadoop.hive.ql.parse.SemanticAnalyzer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import jline.internal.Log;
 
 public class ASTBuilder {
+  
+  public static final Logger logger  = LoggerFactory.getLogger(ASTBuilder.class);
 
   public static ASTBuilder construct(int tokenType, String text) {
     ASTBuilder b = new ASTBuilder();
@@ -73,7 +76,6 @@ public class ASTBuilder {
     
     if (scan instanceof JdbcHiveTableScan) {
       JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;
-      jts = ((JdbcHiveTableScan) scan);// TODO use as HiveTableScan
       hts = jts.getHiveTableScan();
     } else if (scan instanceof DruidQuery) {
       hts = (HiveTableScan) ((DruidQuery) scan).getTableScan();
@@ -102,7 +104,11 @@ public class ASTBuilder {
     } else if (scan instanceof JdbcHiveTableScan) {// TODOY 35:30
       JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;//TODOY
       final String query = jts.generateSql (JethrodataSqlDialect.DEFAULT);
-      Log.info("The JdbcHiveTableScan generated sql message is: " + query);
+      final String query2 = jts.implement
+          (jts.getImplementor(JethrodataSqlDialect.DEFAULT)).asStatement().
+          toSqlString(JethrodataSqlDialect.DEFAULT).getSql();
+      logger.info("The JdbcHiveTableScan generated sql message is: " + System.lineSeparator() + query);
+      logger.info("The JdbcHiveTableScan generated sql2 message is: " + System.lineSeparator() + query2);
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
           .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
               .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
