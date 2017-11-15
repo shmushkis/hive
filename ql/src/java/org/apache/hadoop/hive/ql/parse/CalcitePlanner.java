@@ -169,6 +169,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveExcept;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveFilter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveGroupingID;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveIntersect;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJoin;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveProject;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveRelNode;
@@ -2459,10 +2460,7 @@ public class CalcitePlanner extends SemanticAnalyzer {
 
             //(JdbcTableScan) jt.toRel(RelOptUtil.getContext(cluster), optTable);
             JdbcHiveTableScan jdbcTableRel = new JdbcHiveTableScan (cluster, optTable, jt, jc, hts);
-            //m = new MyConverter ();
-            //m.add (jdbcTableScan);
-            tableRel = jdbcTableRel;
-            
+            tableRel = new HiveJdbcConverter(cluster, jdbcTableRel.getTraitSet().replace (HiveRelNode.CONVENTION), jdbcTableRel);
           }
 
         } else {

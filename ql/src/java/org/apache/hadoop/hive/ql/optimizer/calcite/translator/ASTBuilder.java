@@ -25,6 +25,7 @@ import org.apache.calcite.adapter.jdbc.JdbcImplementor;
 import org.apache.calcite.adapter.jdbc.JdbcTableScan;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.rel.RelNode;
+import org.apache.calcite.rel.RelVisitor;
 import org.apache.calcite.rel.core.JoinRelType;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.calcite.rex.RexLiteral;
@@ -40,6 +41,7 @@ import org.apache.hadoop.hive.conf.Constants;
 import org.apache.hadoop.hive.ql.optimizer.calcite.RelOptHiveTable;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveTableScan;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.JdbcHiveTableScan;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.apache.hadoop.hive.ql.parse.ASTNode;
 import org.apache.hadoop.hive.ql.parse.BaseSemanticAnalyzer;
 import org.apache.hadoop.hive.ql.parse.HiveParser;
@@ -72,17 +74,39 @@ public class ASTBuilder {
   }
   
   public static ASTNode table(final RelNode scan) {
-    HiveTableScan hts = null;
+    JdbcHiveTableScan jdbcHiveTableScan = null;//TODOY
     
-    if (scan instanceof JdbcHiveTableScan) {
-      JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;
-      hts = jts.getHiveTableScan();
+    HiveTableScan hts = null;
+    if (scan instanceof HiveJdbcConverter) {
+      HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;//TODOY
+      //TODOY find the first jdbc using RelVisitor an extract the HiveTableScan out of it and assign hts
+      final  JdbcHiveTableScan []  tmpJdbcHiveTableScan = new JdbcHiveTableScan[1];
+      new RelVisitor() {
+        
+        public void visit(
+            RelNode node,
+            int ordinal,
+            RelNode parent) {
+          if (tmpJdbcHiveTableScan [0] instanceof JdbcHiveTableScan && tmpJdbcHiveTableScan [0] != null) {
+            tmpJdbcHiveTableScan [0] = (JdbcHiveTableScan) node;
+          } else {
+            super.visit(node, ordinal, parent);
+          }
+        }
+      }.go(scan);
+      
+      jdbcHiveTableScan = tmpJdbcHiveTableScan [0];
+      
+      assert jdbcHiveTableScan != null;
+      
+      hts = jdbcHiveTableScan.getHiveTableScan();
     } else if (scan instanceof DruidQuery) {
       hts = (HiveTableScan) ((DruidQuery) scan).getTableScan();
     } else {
       hts = (HiveTableScan) scan;
     }
 
+    
     assert hts != null;
     RelOptHiveTable hTbl = (RelOptHiveTable) hts.getTable();
     ASTBuilder b = ASTBuilder.construct(HiveParser.TOK_TABREF, "TOK_TABREF").add(
@@ -101,17 +125,13 @@ public class ASTBuilder {
       propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
               .add(HiveParser.StringLiteral, "\"" + Constants.DRUID_QUERY_TYPE + "\"")
               .add(HiveParser.StringLiteral, "\"" + dq.getQueryType().getQueryName() + "\""));
-    } else if (scan instanceof JdbcHiveTableScan) {// TODOY 35:30
-      JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;//TODOY
-      final String query = jts.generateSql (JethrodataSqlDialect.DEFAULT);
-      final String query2 = jts.implement
-          (jts.getImplementor(JethrodataSqlDialect.DEFAULT)).asStatement().
-          toSqlString(JethrodataSqlDialect.DEFAULT).getSql();
-      logger.info("The JdbcHiveTableScan generated sql message is: " + System.lineSeparator() + query);
-      logger.info("The JdbcHiveTableScan generated sql2 message is: " + System.lineSeparator() + query2);
-      propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
-          .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
-              .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
+    } else if (scan instanceof HiveJdbcConverter) {// TODOY 35:30
+            HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;
+            final String query = jdbcConverter.generateSql (JethrodataSqlDialect.DEFAULT);
+            logger.info("The HiveJdbcConverter generated sql message is: " + System.lineSeparator() + query);
+            propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
+                .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
+                .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
     }
 
     if (hts.isInsideView()) {
@@ -130,9 +150,8 @@ public class ASTBuilder {
     // where table names differ only in DB name, Hive would require user
     // introducing explicit aliases for tbl.
     String tableName = "";
-    if (scan instanceof JdbcHiveTableScan) {
-      JdbcHiveTableScan jts = (JdbcHiveTableScan) scan;
-      tableName = jts.jdbcTable.jdbcTableName;//TODOY correct??
+    if (scan instanceof HiveJdbcConverter) {
+      tableName = jdbcHiveTableScan.jdbcTable.jdbcTableName;//TODOY correct??
     } else {
       tableName = hts.getTableAlias();
     }

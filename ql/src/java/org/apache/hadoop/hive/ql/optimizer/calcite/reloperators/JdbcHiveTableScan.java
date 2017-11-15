@@ -59,18 +59,4 @@ public class JdbcHiveTableScan extends JdbcTableScan {
     return hiveTableScan;
   }
   
-  public String generateSql(SqlDialect dialect) {
-    final JdbcImplementor jdbcImplementor = getImplementor(dialect);
-    final JdbcImplementor.Result result =
-        jdbcImplementor.visitChild(0, this);
-    return result.asStatement().toSqlString(dialect).getSql();
-  }
-
-  public JdbcImplementor getImplementor(SqlDialect dialect) {
-    final JdbcImplementor jdbcImplementor =
-        new JdbcImplementor(dialect,
-            (JavaTypeFactory) getCluster().getTypeFactory());
-    return jdbcImplementor;
-  }
-
 }
