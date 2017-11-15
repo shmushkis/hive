@@ -280,8 +280,7 @@ STAGE PLANS:
           name: default.smb_mapjoin9_results
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce

@@ -249,8 +249,7 @@ public final class Vertex implements Comparable<Vertex>{
       // find the right op
       Op choose = null;
       for (Op op : this.outputOps) {
-        // op.outputVertexName may be null
-        if (callingVertex.name.equals(op.outputVertexName)) {
+        if (op.outputVertexName.equals(callingVertex.name)) {
           choose = op;
         }
       }

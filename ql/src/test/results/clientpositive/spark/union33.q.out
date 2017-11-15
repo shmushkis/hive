@@ -124,8 +124,7 @@ STAGE PLANS:
               name: default.test_src
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_src 
 SELECT key, value FROM (
@@ -278,8 +277,7 @@ STAGE PLANS:
               name: default.test_src
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_src 
 SELECT key, value FROM (

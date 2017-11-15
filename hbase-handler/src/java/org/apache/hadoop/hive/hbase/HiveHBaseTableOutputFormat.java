@@ -20,21 +20,19 @@ package org.apache.hadoop.hive.hbase;
 
 import java.io.IOException;
 
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.BufferedMutator;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Durability;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapred.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableOutputCommitter;
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.hive.conf.HiveConf;
+import org.apache.hadoop.hive.hbase.PutWritable;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputFormat;
@@ -104,9 +102,9 @@ public class HiveHBaseTableOutputFormat extends
     jobConf.set(TableOutputFormat.OUTPUT_TABLE, hbaseTableName);
     final boolean walEnabled = HiveConf.getBoolVar(
         jobConf, HiveConf.ConfVars.HIVE_HBASE_WAL_ENABLED);
-    final Connection conn = ConnectionFactory.createConnection(HBaseConfiguration.create(jobConf));
-    final BufferedMutator table = conn.getBufferedMutator(TableName.valueOf(hbaseTableName));
-    return new MyRecordWriter(table, conn, walEnabled);
+    final HTable table = new HTable(HBaseConfiguration.create(jobConf), hbaseTableName);
+    table.setAutoFlush(false);
+    return new MyRecordWriter(table,walEnabled);
   }
 
   @Override
@@ -117,14 +115,12 @@ public class HiveHBaseTableOutputFormat extends
 
 
   static private class MyRecordWriter implements org.apache.hadoop.mapred.RecordWriter<ImmutableBytesWritable, Object> {
-    private final BufferedMutator m_table;
+    private final HTable m_table;
     private final boolean m_walEnabled;
-    private final Connection m_connection;
 
-    public MyRecordWriter(BufferedMutator table, Connection connection, boolean walEnabled) {
+    public MyRecordWriter(HTable table, boolean walEnabled) {
       m_table = table;
       m_walEnabled = walEnabled;
-      m_connection = connection;
     }
 
     public void close(Reporter reporter)
@@ -147,14 +143,13 @@ public class HiveHBaseTableOutputFormat extends
       } else {
         put.setDurability(Durability.SKIP_WAL);
       }
-      m_table.mutate(put);
+      m_table.put(put);
     }
 
     @Override
     protected void finalize() throws Throwable {
       try {
         m_table.close();
-        m_connection.close();
       } finally {
         super.finalize();
       }

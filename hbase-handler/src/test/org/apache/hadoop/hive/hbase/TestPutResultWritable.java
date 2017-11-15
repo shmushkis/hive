@@ -43,9 +43,9 @@ public class TestPutResultWritable {
       new KeyValue(Bytes.toBytes("test-row"), Bytes.toBytes("cfa"),
         Bytes.toBytes("col2"), Bytes.toBytes("cfacol2"))
     };
-    Result expected = Result.create(kvs);
+    Result expected = new Result(kvs);
     ResultWritable actual = copy(new ResultWritable(expected), new ResultWritable());
-    Assert.assertArrayEquals(expected.rawCells(), actual.getResult().rawCells());
+    Assert.assertArrayEquals(expected.raw(), actual.getResult().raw());
 
   }
 
@@ -65,8 +65,7 @@ public class TestPutResultWritable {
     }
     PutWritable actual = copy(new PutWritable(expected), new PutWritable());
     Assert.assertArrayEquals(expected.getRow(), actual.getPut().getRow());
-    Assert.assertEquals(expected.getFamilyCellMap().keySet(),
-        actual.getPut().getFamilyCellMap().keySet());
+    Assert.assertEquals(expected.getFamilyMap(), actual.getPut().getFamilyMap());
   }
 
   private <T extends Writable> T copy(T oldWritable, T newWritable) throws IOException {

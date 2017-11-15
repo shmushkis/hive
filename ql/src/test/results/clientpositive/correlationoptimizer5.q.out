@@ -215,8 +215,7 @@ STAGE PLANS:
               name: default.dest_co1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-5
     Map Reduce
@@ -462,8 +461,7 @@ STAGE PLANS:
               name: default.dest_co2
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE dest_co2
 SELECT b.key, d.val
@@ -638,8 +636,7 @@ STAGE PLANS:
               name: default.dest_co3
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-13
     Map Reduce Local Work

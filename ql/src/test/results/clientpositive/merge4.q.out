@@ -65,8 +65,7 @@ STAGE PLANS:
               name: default.nzhang_part
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -1186,8 +1185,7 @@ STAGE PLANS:
               name: default.nzhang_part
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -2847,8 +2845,7 @@ STAGE PLANS:
               name: default.nzhang_part
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce

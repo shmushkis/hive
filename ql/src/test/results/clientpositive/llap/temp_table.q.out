@@ -52,8 +52,7 @@ STAGE PLANS:
           isTemporary: true
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-0
     Move Operator
@@ -125,8 +124,7 @@ STAGE PLANS:
           isTemporary: true
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-0
     Move Operator

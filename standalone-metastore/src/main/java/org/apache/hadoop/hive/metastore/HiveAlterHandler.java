@@ -57,7 +57,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -253,7 +252,7 @@ public class HiveAlterHandler implements AlterHandler {
             part.setDbName(newDbName);
             part.setTableName(newTblName);
             ColumnStatistics colStats = updateOrGetPartitionColumnStats(msdb, dbname, name,
-                part.getValues(), part.getSd().getCols(), oldt, part, null);
+                part.getValues(), part.getSd().getCols(), oldt, part);
             if (colStats != null) {
               columnStatsNeedUpdated.put(part, colStats);
             }
@@ -261,21 +260,8 @@ public class HiveAlterHandler implements AlterHandler {
           msdb.alterTable(dbname, name, newt);
           // alterPartition is only for changing the partition location in the table rename
           if (dataWasMoved) {
-
-            int partsToProcess = parts.size();
-            int partitionBatchSize = MetastoreConf.getIntVar(hiveConf,
-                MetastoreConf.ConfVars.BATCH_RETRIEVE_MAX);
-            int batchStart = 0;
-            while (partsToProcess > 0) {
-              int batchEnd = Math.min(batchStart + partitionBatchSize, parts.size());
-              List<Partition> partBatch = parts.subList(batchStart, batchEnd);
-              partsToProcess -= partBatch.size();
-              batchStart += partBatch.size();
-              List<List<String>> partValues = new LinkedList<>();
-              for (Partition part : partBatch) {
-                partValues.add(part.getValues());
-              }
-              msdb.alterPartitions(newDbName, newTblName, partValues, partBatch);
+            for (Partition part : parts) {
+              msdb.alterPartition(newDbName, newTblName, part.getValues(), part);
             }
           }
 
@@ -305,7 +291,7 @@ public class HiveAlterHandler implements AlterHandler {
               List<FieldSchema> oldCols = part.getSd().getCols();
               part.getSd().setCols(newt.getSd().getCols());
               ColumnStatistics colStats = updateOrGetPartitionColumnStats(msdb, dbname, name,
-                  part.getValues(), oldCols, oldt, part, null);
+                  part.getValues(), oldCols, oldt, part);
               assert(colStats == null);
               msdb.alterPartition(dbname, name, part.getValues(), part);
             }
@@ -448,7 +434,7 @@ public class HiveAlterHandler implements AlterHandler {
         // PartitionView does not have SD. We do not need update its column stats
         if (oldPart.getSd() != null) {
           updateOrGetPartitionColumnStats(msdb, dbname, name, new_part.getValues(),
-              oldPart.getSd().getCols(), tbl, new_part, null);
+              oldPart.getSd().getCols(), tbl, new_part);
         }
         msdb.alterPartition(dbname, name, new_part.getValues(), new_part);
         if (transactionalListeners != null && !transactionalListeners.isEmpty()) {
@@ -575,7 +561,7 @@ public class HiveAlterHandler implements AlterHandler {
 
       String newPartName = Warehouse.makePartName(tbl.getPartitionKeys(), new_part.getValues());
       ColumnStatistics cs = updateOrGetPartitionColumnStats(msdb, dbname, name, oldPart.getValues(),
-          oldPart.getSd().getCols(), tbl, new_part, null);
+          oldPart.getSd().getCols(), tbl, new_part);
       msdb.alterPartition(dbname, name, part_vals, new_part);
       if (cs != null) {
         cs.getStatsDesc().setPartName(newPartName);
@@ -673,7 +659,7 @@ public class HiveAlterHandler implements AlterHandler {
         // PartitionView does not have SD and we do not need to update its column stats
         if (oldTmpPart.getSd() != null) {
           updateOrGetPartitionColumnStats(msdb, dbname, name, oldTmpPart.getValues(),
-              oldTmpPart.getSd().getCols(), tbl, tmpPart, null);
+              oldTmpPart.getSd().getCols(), tbl, tmpPart);
         }
       }
 
@@ -825,14 +811,12 @@ public class HiveAlterHandler implements AlterHandler {
 
   private ColumnStatistics updateOrGetPartitionColumnStats(
       RawStore msdb, String dbname, String tblname, List<String> partVals,
-      List<FieldSchema> oldCols, Table table, Partition part, List<FieldSchema> newCols)
+      List<FieldSchema> oldCols, Table table, Partition part)
           throws MetaException, InvalidObjectException {
     ColumnStatistics newPartsColStats = null;
     try {
-      // if newCols are not specified, use default ones.
-      if (newCols == null) {
-        newCols = part.getSd() == null ? new ArrayList<>() : part.getSd().getCols();
-      }
+      List<FieldSchema> newCols = part.getSd() == null ?
+          new ArrayList<>() : part.getSd().getCols();
       String oldPartName = Warehouse.makePartName(table.getPartitionKeys(), partVals);
       String newPartName = Warehouse.makePartName(table.getPartitionKeys(), part.getValues());
       boolean rename = !part.getDbName().equals(dbname) || !part.getTableName().equals(tblname)

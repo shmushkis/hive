@@ -120,8 +120,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-5
     Map Reduce
@@ -165,8 +164,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-6
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM SRC
 INSERT OVERWRITE TABLE DEST1 SELECT SRC.key, sum(SUBSTR(SRC.value,5)) GROUP BY SRC.key ORDER BY SRC.key limit 10

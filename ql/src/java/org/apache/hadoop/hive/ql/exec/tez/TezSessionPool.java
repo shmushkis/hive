@@ -25,7 +25,6 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -312,6 +311,8 @@ class TezSessionPool<SessionType extends TezSessionPoolSession> {
       HiveConf conf = session.getConf();
       conf.set(ConfVars.LLAP_TASK_SCHEDULER_AM_REGISTRY_NAME.varname, amRegistryName);
       conf.set(ConfVars.HIVESESSIONID.varname, session.getSessionId());
+      // TODO: can be enable temporarily for testing
+      // conf.set(LlapTaskSchedulerService.LLAP_PLUGIN_ENDPOINT_ENABLED, "true");
     }
   }
 

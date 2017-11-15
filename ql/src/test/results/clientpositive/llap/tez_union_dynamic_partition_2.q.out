@@ -144,8 +144,7 @@ STAGE PLANS:
               name: default.partunion1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-4
     Tez

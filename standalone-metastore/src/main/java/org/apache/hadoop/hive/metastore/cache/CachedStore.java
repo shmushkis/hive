@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.hive.metastore.cache;
 
-import org.apache.hadoop.hive.metastore.api.WMFullResourcePlan;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -2242,9 +2240,9 @@ public class CachedStore implements RawStore, Configurable {
   }
 
   @Override
-  public void createResourcePlan(WMResourcePlan resourcePlan, int defaultPoolSize)
+  public void createResourcePlan(WMResourcePlan resourcePlan)
       throws AlreadyExistsException, MetaException {
-    rawStore.createResourcePlan(resourcePlan, defaultPoolSize);
+    rawStore.createResourcePlan(resourcePlan);
   }
 
   @Override
@@ -2258,16 +2256,10 @@ public class CachedStore implements RawStore, Configurable {
   }
 
   @Override
-  public WMFullResourcePlan alterResourcePlan(
-      String name, WMResourcePlan resourcePlan, boolean canActivateDisabled)
+  public void alterResourcePlan(String name, WMResourcePlan resourcePlan)
       throws AlreadyExistsException, NoSuchObjectException, InvalidOperationException,
           MetaException {
-    return rawStore.alterResourcePlan(name, resourcePlan, canActivateDisabled);
-  }
-
-  @Override
-  public WMFullResourcePlan getActiveResourcePlan() throws MetaException {
-    return rawStore.getActiveResourcePlan();
+    rawStore.alterResourcePlan(name, resourcePlan);
   }
 
   @Override

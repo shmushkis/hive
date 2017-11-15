@@ -93,8 +93,7 @@ STAGE PLANS:
               name: default.test1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Spark
@@ -564,8 +563,7 @@ STAGE PLANS:
               name: default.test1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Spark
@@ -675,8 +673,7 @@ STAGE PLANS:
               name: default.test1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Spark

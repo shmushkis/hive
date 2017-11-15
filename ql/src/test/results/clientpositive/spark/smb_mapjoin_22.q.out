@@ -75,8 +75,7 @@ STAGE PLANS:
               name: default.test_table2
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table2
 SELECT * FROM test_table1
@@ -219,8 +218,7 @@ STAGE PLANS:
               name: default.test_table2
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table2
 SELECT * FROM test_table1

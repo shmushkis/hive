@@ -19,7 +19,6 @@
 package org.apache.hive.service.cli.session;
 
 import java.io.IOException;
-import java.util.List;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -50,9 +49,8 @@ public class HiveSessionImplwithUGI extends HiveSessionImpl {
   private HiveSession proxySession = null;
 
   public HiveSessionImplwithUGI(SessionHandle sessionHandle, TProtocolVersion protocol, String username,
-    String password, HiveConf hiveConf, String ipAddress, String delegationToken,
-    final List<String> forwardedAddresses) throws HiveSQLException {
-    super(sessionHandle, protocol, username, password, hiveConf, ipAddress, forwardedAddresses);
+    String password, HiveConf hiveConf, String ipAddress, String delegationToken) throws HiveSQLException {
+    super(sessionHandle, protocol, username, password, hiveConf, ipAddress);
     setSessionUGI(username);
     setDelegationToken(delegationToken);
   }

@@ -393,8 +393,7 @@ STAGE PLANS:
               name: default.dest_j1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-4

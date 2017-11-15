@@ -308,12 +308,12 @@ public class HiveHistoryImpl implements HiveHistory{
       new ThreadLocal<Map<String, String>>() {
     @Override
     protected Map<String,String> initialValue() {
-      return new HashMap<>();
+      return new HashMap<String,String>();
     }
   };
 
   @Override
-  public synchronized void logPlanProgress(QueryPlan plan) throws IOException {
+  public void logPlanProgress(QueryPlan plan) throws IOException {
     if (plan != null) {
       Map<String,String> ctrmap = ctrMapFactory.get();
       ctrmap.put("plan", plan.toString());

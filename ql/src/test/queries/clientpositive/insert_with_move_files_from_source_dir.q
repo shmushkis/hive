@@ -1,4 +1,5 @@
 
+set hive.exec.move.files.from.source.dir=true;
 set hive.enforce.bucketing=true;
 set hive.exec.dynamic.partition=true;
 set hive.exec.dynamic.partition.mode=nonstrict;
@@ -7,8 +8,7 @@ create table emp1 (id int, name string, dept int, country string) row format del
 load data local inpath '../../data/files/employee_part.txt' overwrite into table emp1;
 select * from emp1 order by id;
 
-set hive.blobstore.supported.schemes=pfile;
--- Setting pfile to be treated as blobstore to test mvFileToFinalPath() behavior for blobstore case
+-- Testing inserts with hive.exec.move.files.from.source.dir=true
 -- inserts into non-partitioned/non-bucketed table
 create table emp2 (id int, name string, dept int, country string) stored as textfile;
 insert overwrite table emp2 select * from emp1;

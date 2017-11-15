@@ -74,8 +74,7 @@ STAGE PLANS:
           name: db1.table_db1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce

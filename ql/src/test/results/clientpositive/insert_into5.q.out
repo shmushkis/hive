@@ -78,8 +78,7 @@ STAGE PLANS:
               name: default.insert_into5a
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT INTO TABLE insert_into5a SELECT 1, 'one' FROM src LIMIT 10
 PREHOOK: type: QUERY
@@ -158,8 +157,7 @@ STAGE PLANS:
               name: default.insert_into5a
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -272,8 +270,7 @@ STAGE PLANS:
               name: default.insert_into5b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -388,8 +385,7 @@ STAGE PLANS:
               name: default.insert_into5b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce

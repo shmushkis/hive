@@ -70,7 +70,7 @@ public class ColumnStatsMergerFactory {
       break;
     }
     default:
-      throw new IllegalArgumentException("Unknown stats type " + statsObjNew.getStatsData().getSetField());
+      throw new IllegalArgumentException("Unknown stats type " + typeNew.toString());
     }
     return agg;
   }

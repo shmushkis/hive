@@ -165,8 +165,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -179,8 +178,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from (
   SELECT a.key key1, a.value value1, b.key key2, b.value value2 
@@ -368,8 +366,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -382,8 +379,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from (
   SELECT a.key key1, a.value value1, b.key key2, b.value value2 
@@ -571,8 +567,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -585,8 +580,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from (
   SELECT a.key key1, a.value value1, b.key key2, b.value value2 

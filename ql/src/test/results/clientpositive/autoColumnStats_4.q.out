@@ -49,7 +49,8 @@ STAGE DEPENDENCIES:
   Stage-1 is a root stage
   Stage-2 depends on stages: Stage-1
   Stage-0 depends on stages: Stage-2
-  Stage-3 depends on stages: Stage-0, Stage-4
+  Stage-3 depends on stages: Stage-0
+  Stage-5 depends on stages: Stage-3, Stage-4
   Stage-4 depends on stages: Stage-2
 
 STAGE PLANS:
@@ -137,8 +138,10 @@ STAGE PLANS:
           Write Type: INSERT
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
+
+  Stage: Stage-5
+    Column Stats Work
       Column Stats Desc:
           Columns: a, b
           Column Types: int, varchar(128)
@@ -193,6 +196,7 @@ Retention:          	0
 #### A masked pattern was here ####
 Table Type:         	MANAGED_TABLE       	 
 Table Parameters:	 	 
+	COLUMN_STATS_ACCURATE	{\"COLUMN_STATS\":{\"a\":\"true\",\"b\":\"true\"}}
 	numFiles            	2                   
 	numRows             	0                   
 	rawDataSize         	0                   
@@ -235,7 +239,6 @@ Retention:          	0
 #### A masked pattern was here ####
 Table Type:         	MANAGED_TABLE       	 
 Table Parameters:	 	 
-	COLUMN_STATS_ACCURATE	{}                  
 	numFiles            	4                   
 	numRows             	0                   
 	rawDataSize         	0                   

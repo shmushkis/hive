@@ -168,9 +168,8 @@ STAGE PLANS:
               name: default.table1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
-          Stats Aggregation Key Prefix: ### BLOBSTORE_STAGING_PATH ###
+    Stats-Aggr Operator
+      Stats Aggregation Key Prefix: ### BLOBSTORE_STAGING_PATH ###
 
   Stage: Stage-3
     Map Reduce

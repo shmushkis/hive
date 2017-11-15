@@ -44,8 +44,7 @@ STAGE DEPENDENCIES:
 
 STAGE PLANS:
   Stage: Stage-1
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: analyze table analyze_srcpart PARTITION(ds='2008-04-08',hr=11) compute statistics noscan
 PREHOOK: type: QUERY
@@ -306,8 +305,7 @@ STAGE DEPENDENCIES:
 
 STAGE PLANS:
   Stage: Stage-1
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: analyze table analyze_srcpart_partial PARTITION(ds='2008-04-08') compute statistics noscan
 PREHOOK: type: QUERY

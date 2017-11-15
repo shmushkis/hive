@@ -319,8 +319,7 @@ STAGE PLANS:
               name: default.dest_j1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE dest_j1
@@ -812,8 +811,7 @@ STAGE PLANS:
               name: default.dest_j1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE dest_j1

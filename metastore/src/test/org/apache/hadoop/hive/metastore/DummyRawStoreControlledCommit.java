@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.hive.metastore;
 
-import org.apache.hadoop.hive.metastore.api.WMFullResourcePlan;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -941,9 +939,9 @@ public class DummyRawStoreControlledCommit implements RawStore, Configurable {
   }
 
   @Override
-  public void createResourcePlan(WMResourcePlan resourcePlan, int defaultPoolSize)
+  public void createResourcePlan(WMResourcePlan resourcePlan)
       throws AlreadyExistsException, MetaException {
-    objectStore.createResourcePlan(resourcePlan, defaultPoolSize);
+    objectStore.createResourcePlan(resourcePlan);
   }
 
   @Override
@@ -957,16 +955,10 @@ public class DummyRawStoreControlledCommit implements RawStore, Configurable {
   }
 
   @Override
-  public WMFullResourcePlan alterResourcePlan(String name, WMResourcePlan resourcePlan,
-      boolean canActivateDisabled)
+  public void alterResourcePlan(String name, WMResourcePlan resourcePlan)
       throws AlreadyExistsException, NoSuchObjectException, InvalidOperationException,
           MetaException {
-    return objectStore.alterResourcePlan(name, resourcePlan, canActivateDisabled);
-  }
-
-  @Override
-  public WMFullResourcePlan getActiveResourcePlan() throws MetaException {
-    return objectStore.getActiveResourcePlan();
+    objectStore.alterResourcePlan(name, resourcePlan);
   }
 
   @Override

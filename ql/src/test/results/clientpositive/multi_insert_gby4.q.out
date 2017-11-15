@@ -146,8 +146,7 @@ STAGE PLANS:
               name: default.e1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -160,8 +159,7 @@ STAGE PLANS:
               name: default.e2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-2
     Move Operator
@@ -174,8 +172,7 @@ STAGE PLANS:
               name: default.e3
 
   Stage: Stage-6
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM (SELECT key, value FROM src) a
 INSERT OVERWRITE TABLE e1

@@ -258,14 +258,6 @@ public class StatsSetupConst {
     }
   }
 
-  public static boolean canColumnStatsMerge(Map<String, String> params, String colName) {
-    if (params == null) {
-      return false;
-    }
-    ColumnStatsAccurate stats = parseStatsAcc(params.get(COLUMN_STATS_ACCURATE));
-    return stats.columnStats.containsKey(colName);
-  }
-  
   public static void clearColumnStatsState(Map<String, String> params) {
     if (params == null) {
       return;
@@ -303,9 +295,7 @@ public class StatsSetupConst {
       }
     }
     setBasicStatsState(params, setting);
-    if (TRUE.equals(setting)) {
-      setColumnStatsState(params, cols);
-    }
+    setColumnStatsState(params, cols);
   }
   
   private static ColumnStatsAccurate parseStatsAcc(String statsAcc) {

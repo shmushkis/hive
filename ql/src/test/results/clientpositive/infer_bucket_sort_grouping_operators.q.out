@@ -82,8 +82,7 @@ STAGE PLANS:
               name: default.test_table_out
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: SELECT key, value, count(1) FROM src GROUP BY ROLLUP (key, value)
 PREHOOK: type: QUERY
@@ -1511,8 +1510,7 @@ STAGE PLANS:
               name: default.test_table_out
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table_out PARTITION (part = '1') 
 SELECT key, value, count(1) FROM src GROUP BY key, value WITH CUBE
@@ -1686,8 +1684,7 @@ STAGE PLANS:
               name: default.test_table_out
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table_out PARTITION (part = '1') 
 SELECT key, value, count(1) FROM src GROUP BY key, value GROUPING SETS (key, value)

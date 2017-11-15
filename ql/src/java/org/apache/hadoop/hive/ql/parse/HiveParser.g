@@ -413,7 +413,6 @@ TOK_VALIDATE;
 TOK_ACTIVATE;
 TOK_QUERY_PARALLELISM;
 TOK_RENAME;
-TOK_DEFAULT_POOL;
 TOK_CREATE_TRIGGER;
 TOK_ALTER_TRIGGER;
 TOK_DROP_TRIGGER;
@@ -595,8 +594,6 @@ import org.apache.hadoop.hive.conf.HiveConf;
     xlateMap.put("KW_QUERY_PARALLELISM", "QUERY_PARALLELISM");
     xlateMap.put("KW_PLANS", "PLANS");
     xlateMap.put("KW_ACTIVATE", "ACTIVATE");
-    xlateMap.put("KW_DEFAULT", "DEFAULT");
-    xlateMap.put("KW_POOL", "POOL");
     xlateMap.put("KW_MOVE", "MOVE");
     xlateMap.put("KW_DO", "DO");
 
@@ -1005,35 +1002,18 @@ createResourcePlanStatement
     -> ^(TOK_CREATERESOURCEPLAN $name $parallelism?)
     ;
 
-alterRpSet
-@init { pushMsg("alterRpSet", state); }
-@after { popMsg(state); }
-  : (
-     (KW_QUERY_PARALLELISM EQUAL parallelism=Number -> ^(TOK_QUERY_PARALLELISM $parallelism))
-   | (KW_DEFAULT KW_POOL EQUAL poolName=StringLiteral -> ^(TOK_DEFAULT_POOL $poolName))
-    )
-  ;
-
-alterRpSetList
-@init { pushMsg("alterRpSetList", state); }
-@after { popMsg(state); }
-  :
-  alterRpSet (COMMA alterRpSet)* -> alterRpSet+
-  ;
-
-activate : KW_ACTIVATE -> ^(TOK_ACTIVATE);
-enable : KW_ENABLE -> ^(TOK_ENABLE);
-
 alterResourcePlanStatement
 @init { pushMsg("alter resource plan statement", state); }
 @after { popMsg(state); }
     : KW_ALTER KW_RESOURCE KW_PLAN name=identifier (
           (KW_VALIDATE -> ^(TOK_ALTER_RP $name TOK_VALIDATE))
+        | (KW_ACTIVATE -> ^(TOK_ALTER_RP $name TOK_ACTIVATE))
+        | (KW_ENABLE -> ^(TOK_ALTER_RP $name TOK_ENABLE))
         | (KW_DISABLE -> ^(TOK_ALTER_RP $name TOK_DISABLE))
-        | (KW_SET setList=alterRpSetList -> ^(TOK_ALTER_RP $name $setList))
+        | (KW_SET KW_QUERY_PARALLELISM EQUAL parallelism=Number
+           -> ^(TOK_ALTER_RP $name TOK_QUERY_PARALLELISM $parallelism))
         | (KW_RENAME KW_TO newName=identifier
            -> ^(TOK_ALTER_RP $name TOK_RENAME $newName))
-        | ((activate+ enable? | enable+ activate?) -> ^(TOK_ALTER_RP $name activate? enable?))
       )
     ;
 
@@ -2130,8 +2110,8 @@ tableComment
 tablePartition
 @init { pushMsg("table partition specification", state); }
 @after { popMsg(state); }
-    : KW_PARTITIONED KW_BY LPAREN columnNameTypeConstraint (COMMA columnNameTypeConstraint)* RPAREN
-    -> ^(TOK_TABLEPARTCOLS columnNameTypeConstraint+)
+    : KW_PARTITIONED KW_BY LPAREN columnNameTypeList RPAREN
+    -> ^(TOK_TABLEPARTCOLS columnNameTypeList)
     ;
 
 tableBuckets
@@ -2298,9 +2278,8 @@ columnNameTypeList
 @after { popMsg(state); }
     : columnNameType (COMMA columnNameType)* -> ^(TOK_TABCOLLIST columnNameType+)
     ;
-
 columnNameTypeOrConstraintList
-@init { pushMsg("column name type and constraints list", state); }
+@init { pushMsg("column name type list with PK and FK", state); }
 @after { popMsg(state); }
     : columnNameTypeOrConstraint (COMMA columnNameTypeOrConstraint)* -> ^(TOK_TABCOLLIST columnNameTypeOrConstraint+)
     ;

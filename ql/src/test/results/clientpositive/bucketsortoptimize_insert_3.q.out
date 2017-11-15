@@ -78,8 +78,7 @@ STAGE PLANS:
               name: default.test_table2
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table2 PARTITION (ds = '1')
 SELECT x.value, x.key from 
@@ -197,8 +196,7 @@ STAGE PLANS:
               name: default.test_table2
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table2 PARTITION (ds = '1')
 SELECT x.key, x.value from 

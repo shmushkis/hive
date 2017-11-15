@@ -229,8 +229,7 @@ STAGE PLANS:
           Write Type: DELETE
 
   Stage: Stage-6
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-2
     Move Operator
@@ -244,8 +243,7 @@ STAGE PLANS:
           Write Type: UPDATE
 
   Stage: Stage-7
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Move Operator
@@ -258,8 +256,7 @@ STAGE PLANS:
               name: default.merge_tmp_table
 
   Stage: Stage-8
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -273,8 +270,7 @@ STAGE PLANS:
           Write Type: INSERT
 
   Stage: Stage-9
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: explain merge into acidTbl as t using nonAcidOrcTbl s ON t.a = s.a
 WHEN NOT MATCHED THEN INSERT VALUES(s.a, s.b)
@@ -377,6 +373,5 @@ STAGE PLANS:
           Write Type: INSERT
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 

@@ -186,8 +186,7 @@ STAGE PLANS:
           name: default.result
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: CREATE TABLE result AS SELECT a.* FROM skewtable a JOIN nonskewtable b ON a.key=b.key
 PREHOOK: type: CREATETABLE_AS_SELECT

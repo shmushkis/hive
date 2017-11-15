@@ -203,8 +203,7 @@ STAGE PLANS:
               name: default.tmptable
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table tmptable
   select unionsrc.key, unionsrc.value FROM (select 'tst1' as key, count(1) as value from src s1
@@ -665,8 +664,7 @@ STAGE PLANS:
               name: default.tmptable12
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table tmptable12
   select unionsrc.key, unionsrc.value FROM (select 'tst1' as key, count(1) as value from src s1
@@ -2870,8 +2868,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -2884,8 +2881,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM (select 'tst1' as key, cast(count(1) as string) as value from src s1
                          UNION DISTINCT  
@@ -3700,8 +3696,7 @@ STAGE PLANS:
               name: default.dest118
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -3714,8 +3709,7 @@ STAGE PLANS:
               name: default.dest218
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM (select 'tst1' as key, cast(count(1) as string) as value from src s1
                          UNION DISTINCT  
@@ -4540,8 +4534,7 @@ STAGE PLANS:
               name: default.dest119
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -4554,8 +4547,7 @@ STAGE PLANS:
               name: default.dest219
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM (select 'tst1' as key, cast(count(1) as string) as value from src s1
                          UNION DISTINCT  
@@ -6821,8 +6813,7 @@ STAGE PLANS:
               name: default.dst_union22
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: insert overwrite table dst_union22 partition (ds='2')
@@ -9359,8 +9350,7 @@ STAGE PLANS:
           name: default.tmp_unionall
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-0
     Move Operator
@@ -11035,8 +11025,7 @@ STAGE PLANS:
               name: default.union_subq_union
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table union_subq_union 
 select * from (
@@ -11268,8 +11257,7 @@ STAGE PLANS:
               name: default.union_subq_union29
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table union_subq_union29 
 select * from (
@@ -11895,8 +11883,7 @@ STAGE PLANS:
               name: default.union_subq_union30
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table union_subq_union30 
 select * from (
@@ -12185,8 +12172,7 @@ STAGE PLANS:
               name: default.t3
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -12199,8 +12185,7 @@ STAGE PLANS:
               name: default.t4
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from
 (select * from t1
@@ -12477,8 +12462,7 @@ STAGE PLANS:
               name: default.t5
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -12491,8 +12475,7 @@ STAGE PLANS:
               name: default.t6
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from
 (
@@ -12793,8 +12776,7 @@ STAGE PLANS:
               name: default.t7
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -12807,8 +12789,7 @@ STAGE PLANS:
               name: default.t8
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from
 (
@@ -13775,8 +13756,7 @@ STAGE PLANS:
               name: default.test_src
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_src 
 SELECT key, value FROM (
@@ -13948,8 +13928,7 @@ STAGE PLANS:
               name: default.test_src
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_src 
 SELECT key, value FROM (
@@ -14652,8 +14631,7 @@ STAGE PLANS:
               name: default.tmptable
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table tmptable
 select unionsrc.key, unionsrc.value FROM (select 'tst1' as key, count(1) as value from src s1
@@ -14971,8 +14949,7 @@ STAGE PLANS:
               name: default.tmptable
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table tmptable
 select unionsrc.key, unionsrc.value FROM (select 'tst1' as key, cast(count(1) as string) as value from src s1

@@ -101,8 +101,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-4
     Map Reduce
@@ -144,8 +143,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from src
 insert overwrite table dest1 select key, count(distinct value) group by key

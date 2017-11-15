@@ -24,7 +24,6 @@ import java.io.IOException;
 import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.KeyValueUtil;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil;
 import org.apache.hadoop.hbase.protobuf.generated.ClientProtos;
@@ -66,9 +65,9 @@ public class ResultWritable implements Writable {
   throws IOException {
     ProtobufUtil.toResultNoData(result).writeDelimitedTo(DataOutputOutputStream.from(out));
     out.writeInt(result.size());
-    for(Cell cell : result.listCells()) {
-      KeyValue kv = KeyValueUtil.ensureKeyValue(cell);
+    for(KeyValue kv : result.list()) {
       KeyValue.write(kv, out);
     }
   }
+
 }

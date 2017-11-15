@@ -24,20 +24,18 @@ package org.apache.hive.beeline;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedList;
 
 import com.google.common.base.Optional;
 
 
 /**
- * Rows implementation which buffers all rows
+ * Rows implementation which buffers all rows in a linked list.
  */
 class BufferedRows extends Rows {
-  private final List<Row> list;
+  private final LinkedList<Row> list;
   private final Iterator<Row> iterator;
-  private int columnCount;
   private int maxColumnWidth;
 
   BufferedRows(BeeLine beeLine, ResultSet rs) throws SQLException {
@@ -46,17 +44,21 @@ class BufferedRows extends Rows {
 
   BufferedRows(BeeLine beeLine, ResultSet rs, Optional<Integer> limit) throws SQLException {
     super(beeLine, rs);
-    list = new ArrayList<Row>();
-    columnCount = rsMeta.getColumnCount();
-    list.add(new Row(columnCount));
+    list = new LinkedList<Row>();
+    int count = rsMeta.getColumnCount();
+    list.add(new Row(count));
 
     int numRowsBuffered = 0;
-    int maxRowsBuffered = limit.or(Integer.MAX_VALUE);
-    
-    while (numRowsBuffered++ < maxRowsBuffered && rs.next()) {
-      this.list.add(new Row(columnCount, rs));
+    if (limit.isPresent()) {
+      while (limit.get() > numRowsBuffered && rs.next()) {
+        this.list.add(new Row(count, rs));
+        numRowsBuffered++;
+      }
+    } else {
+      while (rs.next()) {
+        this.list.add(new Row(count, rs));
+      }
     }
-
     iterator = list.iterator();
     maxColumnWidth = beeLine.getOpts().getMaxColumnWidth();
   }
@@ -78,16 +80,18 @@ class BufferedRows extends Rows {
 
   @Override
   void normalizeWidths() {
-    if (!list.isEmpty())
-    {
-      int[] max = new int[columnCount];
-      for (Row row : list) {
-        for (int j = 0; j < columnCount; j++) {
-          // if the max column width is too large, reset it to max allowed Column width
-          max[j] = Math.min(Math.max(max[j], row.sizes[j] + 1), maxColumnWidth);
-        }
-        row.sizes = max;
+    int[] max = null;
+    for (Row row : list) {
+      if (max == null) {
+        max = new int[row.values.length];
       }
+      for (int j = 0; j < max.length; j++) {
+        // if the max column width is too large, reset it to max allowed Column width
+        max[j] = Math.min(Math.max(max[j], row.sizes[j] + 1), maxColumnWidth);
+      }
+    }
+    for (Row row : list) {
+      row.sizes = max;
     }
   }
 }

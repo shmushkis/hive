@@ -64,12 +64,6 @@
    </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-hdfs-client</artifactId>
-      <version>${hadoop.version}</version>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
       <optional>true</optional>
@@ -204,12 +198,6 @@
      <version>${hadoop.version}</version>
       <optional>true</optional>
      <type>test-jar</type>
-     <exclusions>
-       <exclusion>
-         <groupId>com.codahale.metrics</groupId>
-         <artifactId>metrics-core</artifactId>
-       </exclusion>
-     </exclusions>
    </dependency>
    <dependency>
      <groupId>org.apache.hadoop</groupId>

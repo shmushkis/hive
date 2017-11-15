@@ -119,8 +119,7 @@ STAGE PLANS:
               name: default.src_x1
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-6
     Map Reduce

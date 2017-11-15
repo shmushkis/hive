@@ -169,8 +169,7 @@ STAGE PLANS:
           Write Type: UPDATE
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: update srcpart_acid set value = concat(value, 'updated') where cast(key as integer) in(413,43) and hr='11'
 PREHOOK: type: QUERY
@@ -349,8 +348,7 @@ STAGE PLANS:
           Write Type: DELETE
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: delete from srcpart_acid where key in( '1001', '213', '43')
 PREHOOK: type: QUERY
@@ -667,8 +665,7 @@ STAGE PLANS:
           Write Type: UPDATE
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: update srcpart_acidb set value = concat(value, 'updated') where cast(key as integer) in(413,43) and hr='11'
 PREHOOK: type: QUERY
@@ -848,8 +845,7 @@ STAGE PLANS:
           Write Type: DELETE
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: delete from srcpart_acidb where key in( '1001', '213', '43')
 PREHOOK: type: QUERY

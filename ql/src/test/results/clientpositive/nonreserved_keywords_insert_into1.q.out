@@ -70,8 +70,7 @@ STAGE PLANS:
               name: default.insert
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT INTO TABLE `insert` SELECT * FROM src LIMIT 100
 PREHOOK: type: QUERY
@@ -156,8 +155,7 @@ STAGE PLANS:
               name: default.insert
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT INTO TABLE `insert` SELECT * FROM src LIMIT 100
 PREHOOK: type: QUERY
@@ -251,8 +249,7 @@ STAGE PLANS:
               name: default.insert
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE `insert` SELECT * FROM src LIMIT 10
 PREHOOK: type: QUERY

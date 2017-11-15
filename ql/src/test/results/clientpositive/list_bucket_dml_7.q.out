@@ -201,8 +201,7 @@ STAGE PLANS:
               name: default.list_bucketing_dynamic_part
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: insert overwrite table list_bucketing_dynamic_part partition (ds = '2008-04-08', hr)
@@ -517,8 +516,7 @@ STAGE PLANS:
               name: default.list_bucketing_dynamic_part
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3

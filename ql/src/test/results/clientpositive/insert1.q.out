@@ -81,8 +81,7 @@ STAGE PLANS:
               name: default.insert1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -171,8 +170,7 @@ STAGE PLANS:
               name: default.insert1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -275,8 +273,7 @@ STAGE PLANS:
               name: x.insert1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -365,8 +362,7 @@ STAGE PLANS:
               name: default.insert1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -483,8 +479,7 @@ STAGE PLANS:
               name: default.insert1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-4
     Map Reduce
@@ -536,8 +531,7 @@ STAGE PLANS:
               name: x.insert1
 
   Stage: Stage-9
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-10
     Map Reduce

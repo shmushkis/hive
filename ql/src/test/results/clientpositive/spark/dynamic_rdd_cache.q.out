@@ -239,8 +239,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -253,8 +252,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: SELECT dest1.* FROM dest1
 PREHOOK: type: QUERY
@@ -455,8 +453,7 @@ STAGE PLANS:
               name: default.tmptable
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: SELECT * FROM tmptable x SORT BY x.key
 PREHOOK: type: QUERY

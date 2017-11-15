@@ -25,10 +25,8 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.MiniHBaseCluster;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
-import org.apache.hadoop.hbase.client.Table;
+import org.apache.hadoop.hbase.client.HConnectionManager;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.zookeeper.MiniZooKeeperCluster;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -123,6 +121,7 @@ public class ManyMiniCluster {
 
   protected synchronized void stop() {
     if (hbaseCluster != null) {
+      HConnectionManager.deleteAllConnections(true);
       try {
         hbaseCluster.shutdown();
       } catch (Exception e) {
@@ -246,8 +245,6 @@ public class ManyMiniCluster {
 
   private void setupHBaseCluster() {
     final int numRegionServers = 1;
-    Connection connection = null;
-    Table table = null;
 
     try {
       hbaseDir = new File(workDir, "hbase").getCanonicalPath();
@@ -269,25 +266,9 @@ public class ManyMiniCluster {
       hbaseCluster = new MiniHBaseCluster(hbaseConf, numRegionServers);
       hbaseConf.set("hbase.master", hbaseCluster.getMaster().getServerName().getHostAndPort());
       //opening the META table ensures that cluster is running
-      connection = ConnectionFactory.createConnection(hbaseConf);
-      table = connection.getTable(TableName.META_TABLE_NAME);
+      new HTable(hbaseConf, HConstants.META_TABLE_NAME);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to setup HBase Cluster", e);
-    } finally {
-      if (table != null) {
-        try {
-          table.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-      if (connection != null) {
-        try {
-          connection.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
     }
   }
 

@@ -257,8 +257,7 @@ STAGE PLANS:
               name: default.src_5
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-0
     Move Operator
@@ -271,8 +270,7 @@ STAGE PLANS:
               name: default.src_4
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 Warning: Shuffle Join JOIN[31][tables = [sq_2_notin_nullcheck]] in Work 'Reducer 2' is a cross product
 PREHOOK: query: from src b 
@@ -682,8 +680,7 @@ STAGE PLANS:
               name: default.src_4
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -696,8 +693,7 @@ STAGE PLANS:
               name: default.src_5
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 Warning: Map Join MAPJOIN[47][bigTable=b] in task 'Stage-2:MAPRED' is a cross product
 PREHOOK: query: from src b 

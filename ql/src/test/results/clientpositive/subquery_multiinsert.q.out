@@ -233,8 +233,7 @@ STAGE PLANS:
               name: default.src_5
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-6
     Map Reduce
@@ -294,8 +293,7 @@ STAGE PLANS:
               name: default.src_4
 
   Stage: Stage-7
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 Warning: Shuffle Join JOIN[31][tables = [b, sq_2_notin_nullcheck]] in Stage 'Stage-2:MAPRED' is a cross product
 PREHOOK: query: from src b 
@@ -701,8 +699,7 @@ STAGE PLANS:
               name: default.src_5
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-16
     Map Reduce Local Work
@@ -766,8 +763,7 @@ STAGE PLANS:
               name: default.src_4
 
   Stage: Stage-7
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-2
     Map Reduce

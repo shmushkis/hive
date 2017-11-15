@@ -252,8 +252,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: FROM srcpart src1 JOIN src src2 ON (src1.key = src2.key)

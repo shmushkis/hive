@@ -365,8 +365,7 @@ STAGE PLANS:
               name: default.bucketmapjoin_tmp_result
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: insert overwrite table bucketmapjoin_tmp_result 
@@ -727,8 +726,7 @@ STAGE PLANS:
               name: default.bucketmapjoin_tmp_result
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: insert overwrite table bucketmapjoin_tmp_result 

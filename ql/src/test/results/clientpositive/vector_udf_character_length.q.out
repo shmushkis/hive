@@ -93,8 +93,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -252,8 +251,8 @@ POSTHOOK: query: SELECT character_length(dest2.name) FROM dest2
 POSTHOOK: type: QUERY
 POSTHOOK: Input: default@dest2
 #### A masked pattern was here ####
-2
 NULL
+2
 PREHOOK: query: EXPLAIN SELECT char_length(dest2.name) FROM dest2
 PREHOOK: type: QUERY
 POSTHOOK: query: EXPLAIN SELECT char_length(dest2.name) FROM dest2
@@ -296,8 +295,8 @@ POSTHOOK: query: SELECT char_length(dest2.name) FROM dest2
 POSTHOOK: type: QUERY
 POSTHOOK: Input: default@dest2
 #### A masked pattern was here ####
-2
 NULL
+2
 PREHOOK: query: DROP TABLE dest1
 PREHOOK: type: DROPTABLE
 PREHOOK: Input: default@dest1

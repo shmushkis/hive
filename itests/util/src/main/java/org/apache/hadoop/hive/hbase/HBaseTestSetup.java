@@ -28,12 +28,12 @@ import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.Admin;
-import org.apache.hadoop.hbase.client.Connection;
-import org.apache.hadoop.hbase.client.ConnectionFactory;
+import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HConnection;
+import org.apache.hadoop.hbase.client.HConnectionManager;
 import org.apache.hadoop.hbase.MiniHBaseCluster;
+import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.mapred.JobConf;
@@ -48,11 +48,11 @@ public class HBaseTestSetup {
   private MiniHBaseCluster hbaseCluster;
   private int zooKeeperPort;
   private String hbaseRoot;
-  private Connection hbaseConn;
+  private HConnection hbaseConn;
 
   private static final int NUM_REGIONSERVERS = 1;
 
-  public Connection getConnection() {
+  public HConnection getConnection() {
     return this.hbaseConn;
   }
 
@@ -94,15 +94,12 @@ public class HBaseTestSetup {
     hbaseConf.setInt("hbase.master.info.port", -1);
     hbaseConf.setInt("hbase.regionserver.port", findFreePort());
     hbaseConf.setInt("hbase.regionserver.info.port", -1);
-    // Fix needed due to dependency for hbase-mapreduce module
-    System.setProperty("org.apache.hadoop.hbase.shaded.io.netty.packagePrefix",
-        "org.apache.hadoop.hbase.shaded.");
     hbaseCluster = new MiniHBaseCluster(hbaseConf, NUM_REGIONSERVERS);
     conf.set("hbase.master", hbaseCluster.getMaster().getServerName().getHostAndPort());
-    hbaseConn = ConnectionFactory.createConnection(hbaseConf);
+    hbaseConn = HConnectionManager.createConnection(hbaseConf);
 
     // opening the META table ensures that cluster is running
-    Table meta = null;
+    HTableInterface meta = null;
     try {
       meta = hbaseConn.getTable(TableName.META_TABLE_NAME);
     } finally {
@@ -113,7 +110,7 @@ public class HBaseTestSetup {
 
   private void createHBaseTable() throws IOException {
     final String HBASE_TABLE_NAME = "HiveExternalTable";
-    HTableDescriptor htableDesc = new HTableDescriptor(TableName.valueOf(HBASE_TABLE_NAME));
+    HTableDescriptor htableDesc = new HTableDescriptor(HBASE_TABLE_NAME.getBytes());
     HColumnDescriptor hcolDesc = new HColumnDescriptor("cf".getBytes());
     htableDesc.addFamily(hcolDesc);
 
@@ -126,16 +123,16 @@ public class HBaseTestSetup {
     float [] floats = new float [] { Float.MIN_VALUE, -1.0F, Float.MAX_VALUE };
     double [] doubles = new double [] { Double.MIN_VALUE, -1.0, Double.MAX_VALUE };
 
-    Admin hbaseAdmin = null;
-    Table htable = null;
+    HBaseAdmin hbaseAdmin = null;
+    HTableInterface htable = null;
     try {
-      hbaseAdmin = hbaseConn.getAdmin();
+      hbaseAdmin = new HBaseAdmin(hbaseConn.getConfiguration());
       if (Arrays.asList(hbaseAdmin.listTables()).contains(htableDesc)) {
         // if table is already in there, don't recreate.
         return;
       }
       hbaseAdmin.createTable(htableDesc);
-      htable = hbaseConn.getTable(TableName.valueOf(HBASE_TABLE_NAME));
+      htable = hbaseConn.getTable(HBASE_TABLE_NAME);
 
       // data
       Put[] puts = new Put[]{
@@ -143,14 +140,14 @@ public class HBaseTestSetup {
 
       // store data
       for (int i = 0; i < puts.length; i++) {
-        puts[i].addColumn("cf".getBytes(), "cq-boolean".getBytes(), Bytes.toBytes(booleans[i]));
-        puts[i].addColumn("cf".getBytes(), "cq-byte".getBytes(), new byte[]{bytes[i]});
-        puts[i].addColumn("cf".getBytes(), "cq-short".getBytes(), Bytes.toBytes(shorts[i]));
-        puts[i].addColumn("cf".getBytes(), "cq-int".getBytes(), Bytes.toBytes(ints[i]));
-        puts[i].addColumn("cf".getBytes(), "cq-long".getBytes(), Bytes.toBytes(longs[i]));
-        puts[i].addColumn("cf".getBytes(), "cq-string".getBytes(), Bytes.toBytes(strings[i]));
-        puts[i].addColumn("cf".getBytes(), "cq-float".getBytes(), Bytes.toBytes(floats[i]));
-        puts[i].addColumn("cf".getBytes(), "cq-double".getBytes(), Bytes.toBytes(doubles[i]));
+        puts[i].add("cf".getBytes(), "cq-boolean".getBytes(), Bytes.toBytes(booleans[i]));
+        puts[i].add("cf".getBytes(), "cq-byte".getBytes(), new byte[]{bytes[i]});
+        puts[i].add("cf".getBytes(), "cq-short".getBytes(), Bytes.toBytes(shorts[i]));
+        puts[i].add("cf".getBytes(), "cq-int".getBytes(), Bytes.toBytes(ints[i]));
+        puts[i].add("cf".getBytes(), "cq-long".getBytes(), Bytes.toBytes(longs[i]));
+        puts[i].add("cf".getBytes(), "cq-string".getBytes(), Bytes.toBytes(strings[i]));
+        puts[i].add("cf".getBytes(), "cq-float".getBytes(), Bytes.toBytes(floats[i]));
+        puts[i].add("cf".getBytes(), "cq-double".getBytes(), Bytes.toBytes(doubles[i]));
 
         htable.put(puts[i]);
       }
@@ -173,6 +170,7 @@ public class HBaseTestSetup {
       hbaseConn = null;
     }
     if (hbaseCluster != null) {
+      HConnectionManager.deleteAllConnections(true);
       hbaseCluster.shutdown();
       hbaseCluster = null;
     }

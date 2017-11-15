@@ -135,16 +135,14 @@ STAGE PLANS:
               name: default.default__temp_temp_index__
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-4
 
   Stage: Stage-5
 
   Stage: Stage-7
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-8
     Map Reduce

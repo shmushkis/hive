@@ -457,17 +457,9 @@ class WMTrigger;
 
 class WMMapping;
 
-class WMPoolTrigger;
-
-class WMFullResourcePlan;
-
 class WMCreateResourcePlanRequest;
 
 class WMCreateResourcePlanResponse;
-
-class WMGetActiveResourcePlanRequest;
-
-class WMGetActiveResourcePlanResponse;
 
 class WMGetResourcePlanRequest;
 
@@ -8509,10 +8501,9 @@ inline std::ostream& operator<<(std::ostream& out, const TableMeta& obj)
 }
 
 typedef struct _WMResourcePlan__isset {
-  _WMResourcePlan__isset() : status(false), queryParallelism(false), defaultPoolPath(false) {}
+  _WMResourcePlan__isset() : status(false), queryParallelism(false) {}
   bool status :1;
   bool queryParallelism :1;
-  bool defaultPoolPath :1;
 } _WMResourcePlan__isset;
 
 class WMResourcePlan {
@@ -8520,14 +8511,13 @@ class WMResourcePlan {
 
   WMResourcePlan(const WMResourcePlan&);
   WMResourcePlan& operator=(const WMResourcePlan&);
-  WMResourcePlan() : name(), status((WMResourcePlanStatus::type)0), queryParallelism(0), defaultPoolPath() {
+  WMResourcePlan() : name(), status((WMResourcePlanStatus::type)0), queryParallelism(0) {
   }
 
   virtual ~WMResourcePlan() throw();
   std::string name;
   WMResourcePlanStatus::type status;
   int32_t queryParallelism;
-  std::string defaultPoolPath;
 
   _WMResourcePlan__isset __isset;
 
@@ -8536,8 +8526,6 @@ class WMResourcePlan {
   void __set_status(const WMResourcePlanStatus::type val);
 
   void __set_queryParallelism(const int32_t val);
-
-  void __set_defaultPoolPath(const std::string& val);
 
   bool operator == (const WMResourcePlan & rhs) const
   {
@@ -8550,10 +8538,6 @@ class WMResourcePlan {
     if (__isset.queryParallelism != rhs.__isset.queryParallelism)
       return false;
     else if (__isset.queryParallelism && !(queryParallelism == rhs.queryParallelism))
-      return false;
-    if (__isset.defaultPoolPath != rhs.__isset.defaultPoolPath)
-      return false;
-    else if (__isset.defaultPoolPath && !(defaultPoolPath == rhs.defaultPoolPath))
       return false;
     return true;
   }
@@ -8578,7 +8562,8 @@ inline std::ostream& operator<<(std::ostream& out, const WMResourcePlan& obj)
 }
 
 typedef struct _WMPool__isset {
-  _WMPool__isset() : allocFraction(false), queryParallelism(false), schedulingPolicy(false) {}
+  _WMPool__isset() : parentPoolName(false), allocFraction(false), queryParallelism(false), schedulingPolicy(false) {}
+  bool parentPoolName :1;
   bool allocFraction :1;
   bool queryParallelism :1;
   bool schedulingPolicy :1;
@@ -8589,12 +8574,13 @@ class WMPool {
 
   WMPool(const WMPool&);
   WMPool& operator=(const WMPool&);
-  WMPool() : resourcePlanName(), poolPath(), allocFraction(0), queryParallelism(0), schedulingPolicy() {
+  WMPool() : resourcePlanName(), poolName(), parentPoolName(), allocFraction(0), queryParallelism(0), schedulingPolicy() {
   }
 
   virtual ~WMPool() throw();
   std::string resourcePlanName;
-  std::string poolPath;
+  std::string poolName;
+  std::string parentPoolName;
   double allocFraction;
   int32_t queryParallelism;
   std::string schedulingPolicy;
@@ -8603,7 +8589,9 @@ class WMPool {
 
   void __set_resourcePlanName(const std::string& val);
 
-  void __set_poolPath(const std::string& val);
+  void __set_poolName(const std::string& val);
+
+  void __set_parentPoolName(const std::string& val);
 
   void __set_allocFraction(const double val);
 
@@ -8615,7 +8603,11 @@ class WMPool {
   {
     if (!(resourcePlanName == rhs.resourcePlanName))
       return false;
-    if (!(poolPath == rhs.poolPath))
+    if (!(poolName == rhs.poolName))
+      return false;
+    if (__isset.parentPoolName != rhs.__isset.parentPoolName)
+      return false;
+    else if (__isset.parentPoolName && !(parentPoolName == rhs.parentPoolName))
       return false;
     if (__isset.allocFraction != rhs.__isset.allocFraction)
       return false;
@@ -8788,125 +8780,6 @@ inline std::ostream& operator<<(std::ostream& out, const WMMapping& obj)
   return out;
 }
 
-
-class WMPoolTrigger {
- public:
-
-  WMPoolTrigger(const WMPoolTrigger&);
-  WMPoolTrigger& operator=(const WMPoolTrigger&);
-  WMPoolTrigger() : pool(), trigger() {
-  }
-
-  virtual ~WMPoolTrigger() throw();
-  std::string pool;
-  std::string trigger;
-
-  void __set_pool(const std::string& val);
-
-  void __set_trigger(const std::string& val);
-
-  bool operator == (const WMPoolTrigger & rhs) const
-  {
-    if (!(pool == rhs.pool))
-      return false;
-    if (!(trigger == rhs.trigger))
-      return false;
-    return true;
-  }
-  bool operator != (const WMPoolTrigger &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const WMPoolTrigger & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-  virtual void printTo(std::ostream& out) const;
-};
-
-void swap(WMPoolTrigger &a, WMPoolTrigger &b);
-
-inline std::ostream& operator<<(std::ostream& out, const WMPoolTrigger& obj)
-{
-  obj.printTo(out);
-  return out;
-}
-
-typedef struct _WMFullResourcePlan__isset {
-  _WMFullResourcePlan__isset() : mappings(false), triggers(false), poolTriggers(false) {}
-  bool mappings :1;
-  bool triggers :1;
-  bool poolTriggers :1;
-} _WMFullResourcePlan__isset;
-
-class WMFullResourcePlan {
- public:
-
-  WMFullResourcePlan(const WMFullResourcePlan&);
-  WMFullResourcePlan& operator=(const WMFullResourcePlan&);
-  WMFullResourcePlan() {
-  }
-
-  virtual ~WMFullResourcePlan() throw();
-  WMResourcePlan plan;
-  std::vector<WMPool>  pools;
-  std::vector<WMMapping>  mappings;
-  std::vector<WMTrigger>  triggers;
-  std::vector<WMPoolTrigger>  poolTriggers;
-
-  _WMFullResourcePlan__isset __isset;
-
-  void __set_plan(const WMResourcePlan& val);
-
-  void __set_pools(const std::vector<WMPool> & val);
-
-  void __set_mappings(const std::vector<WMMapping> & val);
-
-  void __set_triggers(const std::vector<WMTrigger> & val);
-
-  void __set_poolTriggers(const std::vector<WMPoolTrigger> & val);
-
-  bool operator == (const WMFullResourcePlan & rhs) const
-  {
-    if (!(plan == rhs.plan))
-      return false;
-    if (!(pools == rhs.pools))
-      return false;
-    if (__isset.mappings != rhs.__isset.mappings)
-      return false;
-    else if (__isset.mappings && !(mappings == rhs.mappings))
-      return false;
-    if (__isset.triggers != rhs.__isset.triggers)
-      return false;
-    else if (__isset.triggers && !(triggers == rhs.triggers))
-      return false;
-    if (__isset.poolTriggers != rhs.__isset.poolTriggers)
-      return false;
-    else if (__isset.poolTriggers && !(poolTriggers == rhs.poolTriggers))
-      return false;
-    return true;
-  }
-  bool operator != (const WMFullResourcePlan &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const WMFullResourcePlan & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-  virtual void printTo(std::ostream& out) const;
-};
-
-void swap(WMFullResourcePlan &a, WMFullResourcePlan &b);
-
-inline std::ostream& operator<<(std::ostream& out, const WMFullResourcePlan& obj)
-{
-  obj.printTo(out);
-  return out;
-}
-
 typedef struct _WMCreateResourcePlanRequest__isset {
   _WMCreateResourcePlanRequest__isset() : resourcePlan(false) {}
   bool resourcePlan :1;
@@ -8985,89 +8858,6 @@ class WMCreateResourcePlanResponse {
 void swap(WMCreateResourcePlanResponse &a, WMCreateResourcePlanResponse &b);
 
 inline std::ostream& operator<<(std::ostream& out, const WMCreateResourcePlanResponse& obj)
-{
-  obj.printTo(out);
-  return out;
-}
-
-
-class WMGetActiveResourcePlanRequest {
- public:
-
-  WMGetActiveResourcePlanRequest(const WMGetActiveResourcePlanRequest&);
-  WMGetActiveResourcePlanRequest& operator=(const WMGetActiveResourcePlanRequest&);
-  WMGetActiveResourcePlanRequest() {
-  }
-
-  virtual ~WMGetActiveResourcePlanRequest() throw();
-
-  bool operator == (const WMGetActiveResourcePlanRequest & /* rhs */) const
-  {
-    return true;
-  }
-  bool operator != (const WMGetActiveResourcePlanRequest &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const WMGetActiveResourcePlanRequest & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-  virtual void printTo(std::ostream& out) const;
-};
-
-void swap(WMGetActiveResourcePlanRequest &a, WMGetActiveResourcePlanRequest &b);
-
-inline std::ostream& operator<<(std::ostream& out, const WMGetActiveResourcePlanRequest& obj)
-{
-  obj.printTo(out);
-  return out;
-}
-
-typedef struct _WMGetActiveResourcePlanResponse__isset {
-  _WMGetActiveResourcePlanResponse__isset() : resourcePlan(false) {}
-  bool resourcePlan :1;
-} _WMGetActiveResourcePlanResponse__isset;
-
-class WMGetActiveResourcePlanResponse {
- public:
-
-  WMGetActiveResourcePlanResponse(const WMGetActiveResourcePlanResponse&);
-  WMGetActiveResourcePlanResponse& operator=(const WMGetActiveResourcePlanResponse&);
-  WMGetActiveResourcePlanResponse() {
-  }
-
-  virtual ~WMGetActiveResourcePlanResponse() throw();
-  WMFullResourcePlan resourcePlan;
-
-  _WMGetActiveResourcePlanResponse__isset __isset;
-
-  void __set_resourcePlan(const WMFullResourcePlan& val);
-
-  bool operator == (const WMGetActiveResourcePlanResponse & rhs) const
-  {
-    if (__isset.resourcePlan != rhs.__isset.resourcePlan)
-      return false;
-    else if (__isset.resourcePlan && !(resourcePlan == rhs.resourcePlan))
-      return false;
-    return true;
-  }
-  bool operator != (const WMGetActiveResourcePlanResponse &rhs) const {
-    return !(*this == rhs);
-  }
-
-  bool operator < (const WMGetActiveResourcePlanResponse & ) const;
-
-  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
-  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
-
-  virtual void printTo(std::ostream& out) const;
-};
-
-void swap(WMGetActiveResourcePlanResponse &a, WMGetActiveResourcePlanResponse &b);
-
-inline std::ostream& operator<<(std::ostream& out, const WMGetActiveResourcePlanResponse& obj)
 {
   obj.printTo(out);
   return out;
@@ -9253,10 +9043,9 @@ inline std::ostream& operator<<(std::ostream& out, const WMGetAllResourcePlanRes
 }
 
 typedef struct _WMAlterResourcePlanRequest__isset {
-  _WMAlterResourcePlanRequest__isset() : resourcePlanName(false), resourcePlan(false), isEnableAndActivate(false) {}
+  _WMAlterResourcePlanRequest__isset() : resourcePlanName(false), resourcePlan(false) {}
   bool resourcePlanName :1;
   bool resourcePlan :1;
-  bool isEnableAndActivate :1;
 } _WMAlterResourcePlanRequest__isset;
 
 class WMAlterResourcePlanRequest {
@@ -9264,21 +9053,18 @@ class WMAlterResourcePlanRequest {
 
   WMAlterResourcePlanRequest(const WMAlterResourcePlanRequest&);
   WMAlterResourcePlanRequest& operator=(const WMAlterResourcePlanRequest&);
-  WMAlterResourcePlanRequest() : resourcePlanName(), isEnableAndActivate(0) {
+  WMAlterResourcePlanRequest() : resourcePlanName() {
   }
 
   virtual ~WMAlterResourcePlanRequest() throw();
   std::string resourcePlanName;
   WMResourcePlan resourcePlan;
-  bool isEnableAndActivate;
 
   _WMAlterResourcePlanRequest__isset __isset;
 
   void __set_resourcePlanName(const std::string& val);
 
   void __set_resourcePlan(const WMResourcePlan& val);
-
-  void __set_isEnableAndActivate(const bool val);
 
   bool operator == (const WMAlterResourcePlanRequest & rhs) const
   {
@@ -9289,10 +9075,6 @@ class WMAlterResourcePlanRequest {
     if (__isset.resourcePlan != rhs.__isset.resourcePlan)
       return false;
     else if (__isset.resourcePlan && !(resourcePlan == rhs.resourcePlan))
-      return false;
-    if (__isset.isEnableAndActivate != rhs.__isset.isEnableAndActivate)
-      return false;
-    else if (__isset.isEnableAndActivate && !(isEnableAndActivate == rhs.isEnableAndActivate))
       return false;
     return true;
   }
@@ -9316,10 +9098,6 @@ inline std::ostream& operator<<(std::ostream& out, const WMAlterResourcePlanRequ
   return out;
 }
 
-typedef struct _WMAlterResourcePlanResponse__isset {
-  _WMAlterResourcePlanResponse__isset() : fullResourcePlan(false) {}
-  bool fullResourcePlan :1;
-} _WMAlterResourcePlanResponse__isset;
 
 class WMAlterResourcePlanResponse {
  public:
@@ -9330,18 +9108,9 @@ class WMAlterResourcePlanResponse {
   }
 
   virtual ~WMAlterResourcePlanResponse() throw();
-  WMFullResourcePlan fullResourcePlan;
 
-  _WMAlterResourcePlanResponse__isset __isset;
-
-  void __set_fullResourcePlan(const WMFullResourcePlan& val);
-
-  bool operator == (const WMAlterResourcePlanResponse & rhs) const
+  bool operator == (const WMAlterResourcePlanResponse & /* rhs */) const
   {
-    if (__isset.fullResourcePlan != rhs.__isset.fullResourcePlan)
-      return false;
-    else if (__isset.fullResourcePlan && !(fullResourcePlan == rhs.fullResourcePlan))
-      return false;
     return true;
   }
   bool operator != (const WMAlterResourcePlanResponse &rhs) const {

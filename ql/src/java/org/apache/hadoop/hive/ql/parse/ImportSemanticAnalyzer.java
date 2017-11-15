@@ -238,7 +238,7 @@ public class ImportSemanticAnalyzer extends BaseSemanticAnalyzer {
 
     if ((replicationSpec != null) && replicationSpec.isInReplicationScope()){
       tblDesc.setReplicationSpec(replicationSpec);
-      StatsSetupConst.setBasicStatsState(tblDesc.getTblProps(), StatsSetupConst.FALSE);
+      tblDesc.getTblProps().remove(StatsSetupConst.COLUMN_STATS_ACCURATE);
     }
 
     if (isExternalSet){
@@ -266,7 +266,7 @@ public class ImportSemanticAnalyzer extends BaseSemanticAnalyzer {
       // TODO: this should ideally not create AddPartitionDesc per partition
       AddPartitionDesc partsDesc = getBaseAddPartitionDescFromPartition(fromPath, dbname, tblDesc, partition);
       if ((replicationSpec != null) && replicationSpec.isInReplicationScope()){
-        StatsSetupConst.setBasicStatsState(partsDesc.getPartition(0).getPartParams(), StatsSetupConst.FALSE);
+        partsDesc.getPartition(0).getPartParams().remove(StatsSetupConst.COLUMN_STATS_ACCURATE);
       }
       partitionDescs.add(partsDesc);
     }

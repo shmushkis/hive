@@ -122,8 +122,7 @@ STAGE PLANS:
               name: default.orcfile_merge3b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce

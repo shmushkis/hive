@@ -147,8 +147,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM srcorc
 INSERT OVERWRITE TABLE dest1 SELECT substr(srcorc.key,1,1) GROUP BY substr(srcorc.key,1,1)

@@ -964,8 +964,7 @@ STAGE PLANS:
           name: default.sD
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-0
     Move Operator

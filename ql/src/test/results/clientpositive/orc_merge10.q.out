@@ -89,8 +89,7 @@ STAGE PLANS:
               name: default.orcfile_merge1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE orcfile_merge1 PARTITION (ds='1', part)
     SELECT key, value, PMOD(HASH(key), 2) as part
@@ -174,8 +173,7 @@ STAGE PLANS:
               name: default.orcfile_merge1b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -289,8 +287,7 @@ STAGE PLANS:
               name: default.orcfile_merge1c
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Merge File Operator
@@ -421,8 +418,7 @@ STAGE PLANS:
               name: default.orcfile_merge1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: ALTER TABLE  orcfile_merge1 PARTITION (ds='1', part='0') CONCATENATE
 PREHOOK: type: ALTER_PARTITION_MERGE

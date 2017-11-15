@@ -202,8 +202,7 @@ STAGE PLANS:
           name: default.t
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-0

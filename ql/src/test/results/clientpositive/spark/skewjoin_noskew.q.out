@@ -163,8 +163,7 @@ STAGE PLANS:
           name: default.noskew
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: create table noskew as select a.* from src a join src b on a.key=b.key order by a.key limit 30
 PREHOOK: type: CREATETABLE_AS_SELECT

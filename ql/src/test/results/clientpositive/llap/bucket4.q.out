@@ -177,8 +177,7 @@ STAGE PLANS:
               name: default.bucket4_1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: insert overwrite table bucket4_1

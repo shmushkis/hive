@@ -29,6 +29,8 @@ STAGE DEPENDENCIES:
   Stage-3 depends on stages: Stage-2
   Stage-0 depends on stages: Stage-3
   Stage-4 depends on stages: Stage-0
+  Stage-6 depends on stages: Stage-4, Stage-5
+  Stage-7 depends on stages: Stage-4, Stage-5
   Stage-1 depends on stages: Stage-3
   Stage-5 depends on stages: Stage-1
 
@@ -179,12 +181,21 @@ STAGE PLANS:
               name: default.src_a
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
+
+  Stage: Stage-6
+    Column Stats Work
       Column Stats Desc:
           Columns: key, value
           Column Types: string, string
           Table: default.src_a
+
+  Stage: Stage-7
+    Column Stats Work
+      Column Stats Desc:
+          Columns: key, value
+          Column Types: string, string
+          Table: default.src_b
 
   Stage: Stage-1
     Move Operator
@@ -197,12 +208,7 @@ STAGE PLANS:
               name: default.src_b
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
-      Column Stats Desc:
-          Columns: key, value
-          Column Types: string, string
-          Table: default.src_b
+    Stats-Aggr Operator
 
 PREHOOK: query: from (select key, value from src group by key, value) s
 insert overwrite table src_a select s.key, s.value group by s.key, s.value

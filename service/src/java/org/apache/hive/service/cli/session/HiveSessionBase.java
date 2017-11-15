@@ -19,7 +19,6 @@
 package org.apache.hive.service.cli.session;
 
 import java.io.File;
-import java.util.List;
 
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hadoop.hive.ql.session.SessionState;
@@ -84,10 +83,6 @@ public interface HiveSessionBase {
   String getIpAddress();
 
   void setIpAddress(String ipAddress);
-
-  List<String> getForwardedAddresses();
-
-  void setForwardedAddresses(List<String> forwardedAddresses);
 
   long getLastAccessTime();
 

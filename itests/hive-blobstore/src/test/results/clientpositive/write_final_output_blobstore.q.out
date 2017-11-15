@@ -245,8 +245,7 @@ STAGE PLANS:
               name: default.blobstore_table
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: EXPLAIN EXTENDED FROM hdfs_table INSERT OVERWRITE TABLE blobstore_table SELECT hdfs_table.key GROUP BY hdfs_table.key ORDER BY hdfs_table.key
@@ -470,9 +469,8 @@ STAGE PLANS:
               name: default.blobstore_table
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
-          Stats Aggregation Key Prefix: ### BLOBSTORE_STAGING_PATH ###
+    Stats-Aggr Operator
+      Stats Aggregation Key Prefix: ### BLOBSTORE_STAGING_PATH ###
 
 PREHOOK: query: DROP TABLE hdfs_table
 PREHOOK: type: DROPTABLE

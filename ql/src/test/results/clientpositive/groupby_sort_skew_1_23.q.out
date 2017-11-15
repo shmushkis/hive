@@ -200,8 +200,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -655,8 +654,7 @@ STAGE PLANS:
               name: default.outputtbl2
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE outputTbl2
@@ -852,8 +850,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -1227,8 +1224,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -1610,8 +1606,7 @@ STAGE PLANS:
               name: default.outputtbl3
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -2066,8 +2061,7 @@ STAGE PLANS:
               name: default.outputtbl4
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE outputTbl4
@@ -2336,8 +2330,7 @@ STAGE PLANS:
               name: default.outputtbl3
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE outputTbl3
@@ -2618,8 +2611,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE outputTbl1
@@ -2879,8 +2871,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -3522,8 +3513,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-4
@@ -3946,8 +3936,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE outputTbl1
@@ -4593,8 +4582,7 @@ STAGE PLANS:
               name: default.outputtbl1
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
 PREHOOK: query: INSERT OVERWRITE TABLE outputTbl1
@@ -4788,8 +4776,7 @@ STAGE PLANS:
               name: default.outputtbl4
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -5174,8 +5161,7 @@ STAGE PLANS:
               name: default.outputtbl5
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -5559,8 +5545,7 @@ STAGE PLANS:
               name: default.outputtbl4
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -5951,8 +5936,7 @@ STAGE PLANS:
               name: default.outputtbl4
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 #### A masked pattern was here ####
 
   Stage: Stage-3
@@ -6308,8 +6292,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -6322,8 +6305,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM T2
 INSERT OVERWRITE TABLE DEST1 SELECT key, count(1) GROUP BY key
@@ -6493,8 +6475,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -6507,8 +6488,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM (select key, val from T2 where key = 8) x
 INSERT OVERWRITE TABLE DEST1 SELECT key, count(1) GROUP BY key

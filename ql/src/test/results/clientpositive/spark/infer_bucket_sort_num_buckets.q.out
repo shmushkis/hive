@@ -77,8 +77,7 @@ STAGE PLANS:
               name: default.test_table
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: INSERT OVERWRITE TABLE test_table PARTITION (ds = '2008-04-08', hr)
 SELECT key2, value, cast(hr as int) FROM

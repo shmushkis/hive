@@ -108,8 +108,7 @@ STAGE PLANS:
           name: default.orc_createas1b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Merge File Operator
@@ -275,8 +274,7 @@ STAGE PLANS:
           name: default.orc_createas1c
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Merge File Operator

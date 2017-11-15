@@ -698,9 +698,9 @@ public class ShuffleHandler implements AttemptRegistrationListener {
       }
       // Check whether the shuffle version is compatible
       if (!ShuffleHeader.DEFAULT_HTTP_HEADER_NAME.equals(
-          request.headers().get(ShuffleHeader.HTTP_HEADER_NAME))
+          request.getHeader(ShuffleHeader.HTTP_HEADER_NAME))
           || !ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION.equals(
-              request.headers().get(ShuffleHeader.HTTP_HEADER_VERSION))) {
+              request.getHeader(ShuffleHeader.HTTP_HEADER_VERSION))) {
         sendError(ctx, "Incompatible shuffle request version", BAD_REQUEST);
       }
       final Map<String,List<String>> q =
@@ -904,12 +904,12 @@ public class ShuffleHandler implements AttemptRegistrationListener {
         boolean keepAliveParam, long contentLength) {
       if (!connectionKeepAliveEnabled && !keepAliveParam) {
         LOG.info("Setting connection close header...");
-        response.headers().add(HttpHeaders.Names.CONNECTION, CONNECTION_CLOSE);
+        response.setHeader(HttpHeaders.Names.CONNECTION, CONNECTION_CLOSE);
       } else {
-        response.headers().add(HttpHeaders.Names.CONTENT_LENGTH,
+        response.setHeader(HttpHeaders.Names.CONTENT_LENGTH,
           String.valueOf(contentLength));
-        response.headers().add(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-        response.headers().add(HttpHeaders.Values.KEEP_ALIVE, "timeout="
+        response.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+        response.setHeader(HttpHeaders.Values.KEEP_ALIVE, "timeout="
             + connectionKeepAliveTimeOut);
         LOG.debug("Content Length in shuffle : " + contentLength);
       }
@@ -937,7 +937,7 @@ public class ShuffleHandler implements AttemptRegistrationListener {
       String enc_str = SecureShuffleUtils.buildMsgFrom(requestUri);
       // hash from the fetcher
       String urlHashStr =
-        request.headers().get(SecureShuffleUtils.HTTP_HEADER_URL_HASH);
+        request.getHeader(SecureShuffleUtils.HTTP_HEADER_URL_HASH);
       if (urlHashStr == null) {
         LOG.info("Missing header hash for " + appid);
         throw new IOException("fetcher cannot be authenticated");
@@ -953,11 +953,11 @@ public class ShuffleHandler implements AttemptRegistrationListener {
       String reply =
         SecureShuffleUtils.generateHash(urlHashStr.getBytes(Charsets.UTF_8), 
             tokenSecret);
-      response.headers().add(SecureShuffleUtils.HTTP_HEADER_REPLY_URL_HASH, reply);
+      response.setHeader(SecureShuffleUtils.HTTP_HEADER_REPLY_URL_HASH, reply);
       // Put shuffle version into http header
-      response.headers().add(ShuffleHeader.HTTP_HEADER_NAME,
+      response.setHeader(ShuffleHeader.HTTP_HEADER_NAME,
           ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
-      response.headers().add(ShuffleHeader.HTTP_HEADER_VERSION,
+      response.setHeader(ShuffleHeader.HTTP_HEADER_VERSION,
           ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION);
       if (LOG.isDebugEnabled()) {
         int len = reply.length();
@@ -1025,11 +1025,11 @@ public class ShuffleHandler implements AttemptRegistrationListener {
     protected void sendError(ChannelHandlerContext ctx, String message,
         HttpResponseStatus status) {
       HttpResponse response = new DefaultHttpResponse(HTTP_1_1, status);
-      response.headers().add(CONTENT_TYPE, "text/plain; charset=UTF-8");
+      response.setHeader(CONTENT_TYPE, "text/plain; charset=UTF-8");
       // Put shuffle version into http header
-      response.headers().add(ShuffleHeader.HTTP_HEADER_NAME,
+      response.setHeader(ShuffleHeader.HTTP_HEADER_NAME,
           ShuffleHeader.DEFAULT_HTTP_HEADER_NAME);
-      response.headers().add(ShuffleHeader.HTTP_HEADER_VERSION,
+      response.setHeader(ShuffleHeader.HTTP_HEADER_VERSION,
           ShuffleHeader.DEFAULT_HTTP_HEADER_VERSION);
       response.setContent(
         ChannelBuffers.copiedBuffer(message, CharsetUtil.UTF_8));

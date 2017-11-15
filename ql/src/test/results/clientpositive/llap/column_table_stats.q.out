@@ -58,6 +58,7 @@ POSTHOOK: type: QUERY
 STAGE DEPENDENCIES:
   Stage-0 is a root stage
   Stage-2 depends on stages: Stage-0
+  Stage-3 depends on stages: Stage-2
 
 STAGE PLANS:
   Stage: Stage-0
@@ -174,9 +175,11 @@ STAGE PLANS:
                   MultiFileSpray: false
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
-          Stats Aggregation Key Prefix: default.s/
+    Stats-Aggr Operator
+      Stats Aggregation Key Prefix: default.s/
+
+  Stage: Stage-3
+    Column Stats Work
       Column Stats Desc:
           Columns: key, value
           Column Types: string, string
@@ -311,6 +314,7 @@ POSTHOOK: type: QUERY
 STAGE DEPENDENCIES:
   Stage-0 is a root stage
   Stage-2 depends on stages: Stage-0
+  Stage-3 depends on stages: Stage-2
 
 STAGE PLANS:
   Stage: Stage-0
@@ -486,9 +490,11 @@ STAGE PLANS:
                     MultiFileSpray: false
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
-          Stats Aggregation Key Prefix: default.spart/
+    Stats-Aggr Operator
+      Stats Aggregation Key Prefix: default.spart/
+
+  Stage: Stage-3
+    Column Stats Work
       Column Stats Desc:
           Columns: key, value
           Column Types: string, string
@@ -717,6 +723,7 @@ POSTHOOK: type: QUERY
 STAGE DEPENDENCIES:
   Stage-0 is a root stage
   Stage-2 depends on stages: Stage-0
+  Stage-3 depends on stages: Stage-2
 
 STAGE PLANS:
   Stage: Stage-0
@@ -892,9 +899,11 @@ STAGE PLANS:
                     MultiFileSpray: false
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
-          Stats Aggregation Key Prefix: default.spart/
+    Stats-Aggr Operator
+      Stats Aggregation Key Prefix: default.spart/
+
+  Stage: Stage-3
+    Column Stats Work
       Column Stats Desc:
           Columns: key, value
           Column Types: string, string
@@ -1123,6 +1132,7 @@ POSTHOOK: type: QUERY
 STAGE DEPENDENCIES:
   Stage-0 is a root stage
   Stage-2 depends on stages: Stage-0
+  Stage-3 depends on stages: Stage-2
 
 STAGE PLANS:
   Stage: Stage-0
@@ -1250,9 +1260,11 @@ STAGE PLANS:
                     MultiFileSpray: false
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
-          Stats Aggregation Key Prefix: default.spart/
+    Stats-Aggr Operator
+      Stats Aggregation Key Prefix: default.spart/
+
+  Stage: Stage-3
+    Column Stats Work
       Column Stats Desc:
           Columns: key, value
           Column Types: string, string

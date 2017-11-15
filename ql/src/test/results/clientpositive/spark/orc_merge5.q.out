@@ -69,8 +69,7 @@ STAGE PLANS:
               name: default.orc_merge5b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: insert overwrite table orc_merge5b select userid,string1,subtype,decimal1,ts from orc_merge5 where userid<=13
 PREHOOK: type: QUERY
@@ -167,8 +166,7 @@ STAGE PLANS:
               name: default.orc_merge5b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Spark
@@ -289,8 +287,7 @@ STAGE PLANS:
               name: default.orc_merge5b
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: alter table orc_merge5b concatenate
 PREHOOK: type: ALTER_TABLE_MERGE

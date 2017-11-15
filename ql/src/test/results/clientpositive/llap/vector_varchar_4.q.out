@@ -195,6 +195,5 @@ STAGE PLANS:
               name: default.varchar_lazy_binary_columnar
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 

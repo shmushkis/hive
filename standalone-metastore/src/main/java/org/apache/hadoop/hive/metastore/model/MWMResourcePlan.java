@@ -30,8 +30,6 @@ public class MWMResourcePlan {
   private Set<MWMPool> pools;
   private Set<MWMTrigger> triggers;
   private Set<MWMMapping> mappings;
-  private MWMPool defaultPool;
-
 
   public enum Status {
     ACTIVE,
@@ -77,14 +75,6 @@ public class MWMResourcePlan {
 
   public void setPools(Set<MWMPool> pools) {
     this.pools = pools;
-  }
-
-  public MWMPool getDefaultPool() {
-    return defaultPool;
-  }
-
-  public void setDefaultPool(MWMPool defaultPool) {
-    this.defaultPool = defaultPool;
   }
 
   public Set<MWMTrigger> getTriggers() {

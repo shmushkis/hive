@@ -1830,8 +1830,7 @@ STAGE PLANS:
               name: default.t1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-1
     Move Operator
@@ -1844,8 +1843,7 @@ STAGE PLANS:
               name: default.t2
 
   Stage: Stage-5
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: from (select sum(i) over (partition by ts order by i), s from over10k) tt insert overwrite table t1 select * insert overwrite table t2 select *
 PREHOOK: type: QUERY

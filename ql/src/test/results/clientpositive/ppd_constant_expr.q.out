@@ -64,8 +64,7 @@ STAGE PLANS:
               name: default.ppd_constant_expr
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce
@@ -201,8 +200,7 @@ STAGE PLANS:
               name: default.ppd_constant_expr
 
   Stage: Stage-2
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-3
     Map Reduce

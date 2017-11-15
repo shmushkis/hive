@@ -127,8 +127,7 @@ STAGE PLANS:
               name: default.dest1
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-5
     Map Reduce
@@ -167,8 +166,7 @@ STAGE PLANS:
               name: default.dest2
 
   Stage: Stage-6
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-7
     Map Reduce
@@ -207,8 +205,7 @@ STAGE PLANS:
               name: default.dest3
 
   Stage: Stage-8
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
 PREHOOK: query: FROM SRC
 INSERT OVERWRITE TABLE DEST1 SELECT ARRAY(SRC.key), COUNT(1) GROUP BY ARRAY(SRC.key)

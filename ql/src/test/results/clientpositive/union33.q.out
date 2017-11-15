@@ -156,8 +156,7 @@ STAGE PLANS:
               name: default.test_src
 
   Stage: Stage-3
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-4
     Map Reduce
@@ -372,8 +371,7 @@ STAGE PLANS:
               name: default.test_src
 
   Stage: Stage-4
-    Stats Work
-      Basic Stats Work:
+    Stats-Aggr Operator
 
   Stage: Stage-5
     Map Reduce

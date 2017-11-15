@@ -74,8 +74,7 @@ STAGE PLANS:
                   serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
 
   Stage: Stage-1
-    Stats Work
-      Basic Stats Work:
+    Column Stats Work
       Column Stats Desc:
           Columns: key, value
           Column Types: string, string
