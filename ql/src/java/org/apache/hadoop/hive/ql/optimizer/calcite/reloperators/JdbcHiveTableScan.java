@@ -49,7 +49,7 @@ public class JdbcHiveTableScan extends JdbcTableScan {
   }
   
   @Override public RelNode copy(RelTraitSet traitSet, List<RelNode> inputs) {
-    assert inputs.isEmpty();
+    assert inputs.isEmpty();//TODOY need to remove or fix?
     JdbcHiveTableScan res = new JdbcHiveTableScan(
         getCluster(), table, jdbcTable, (JdbcConvention) getConvention(), this.hiveTableScan);
     return res;

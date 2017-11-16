@@ -74,30 +74,13 @@ public class ASTBuilder {
   }
   
   public static ASTNode table(final RelNode scan) {
-    JdbcHiveTableScan jdbcHiveTableScan = null;//TODOY
+    JdbcHiveTableScan jdbcHiveTableScan = null;
     
     HiveTableScan hts = null;
     if (scan instanceof HiveJdbcConverter) {
-      HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;//TODOY
+      HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;
       //TODOY find the first jdbc using RelVisitor an extract the HiveTableScan out of it and assign hts
-      final  JdbcHiveTableScan []  tmpJdbcHiveTableScan = new JdbcHiveTableScan[1];
-      new RelVisitor() {
-        
-        public void visit(
-            RelNode node,
-            int ordinal,
-            RelNode parent) {
-          if (tmpJdbcHiveTableScan [0] instanceof JdbcHiveTableScan && tmpJdbcHiveTableScan [0] != null) {
-            tmpJdbcHiveTableScan [0] = (JdbcHiveTableScan) node;
-          } else {
-            super.visit(node, ordinal, parent);
-          }
-        }
-      }.go(scan);
-      
-      jdbcHiveTableScan = tmpJdbcHiveTableScan [0];
-      
-      assert jdbcHiveTableScan != null;
+      jdbcHiveTableScan = jdbcConverter.getTableScan(scan);
       
       hts = jdbcHiveTableScan.getHiveTableScan();
     } else if (scan instanceof DruidQuery) {
