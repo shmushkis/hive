@@ -56,8 +56,11 @@ import org.apache.calcite.adapter.druid.DruidSchema;
 import org.apache.calcite.adapter.druid.DruidTable;
 import org.apache.calcite.adapter.druid.LocalInterval;
 import org.apache.calcite.adapter.jdbc.JdbcConvention;
+import org.apache.calcite.adapter.jdbc.JdbcRules;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.adapter.jdbc.JdbcTable;
+import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcFilterRule;
+import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcAggregateRule;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -65,6 +68,7 @@ import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptMaterialization;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptRule;
+import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptSchema;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.RelTraitSet;
@@ -223,6 +227,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveSubQueryRemoveRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionMergeRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionPullUpConstantsRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveWindowingFixRule;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyFilterPushDown;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.views.HiveMaterializedViewRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTBuilder;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTConverter;
@@ -1625,8 +1630,25 @@ public class CalcitePlanner extends SemanticAnalyzer {
               DruidRules.PROJECT_SORT_TRANSPOSE
       );
       perfLogger.PerfLogEnd(this.getClass().getName(), PerfLogger.OPTIMIZER, "Calcite: Druid transformation rules");
+      
+      
+      // 11. Apply Jdbc transformation rules
+      perfLogger.PerfLogBegin(this.getClass().getName(), PerfLogger.OPTIMIZER);
+      
 
-      // 11. Run rules to aid in translation from Calcite tree to Hive tree
+      
+      //final List<RelOptRule> jdbcRules = JdbcRules.rules(JdbcConvention.JETHRO_DEFAULT_CONVENTION);
+      calciteOptimizedPlan = hepPlan(calciteOptimizedPlan, false, mdProvider.getMetadataProvider(), null,
+              HepMatchOrder.BOTTOM_UP,
+              new MyFilterPushDown(),
+              new JdbcFilterRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION, HiveRelNode.CONVENTION, HiveFilter.class)
+              //new JdbcAggregateRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION),
+              //jdbcRules.toArray(new RelOptRule [jdbcRules.size()])
+      );
+      
+      perfLogger.PerfLogEnd(this.getClass().getName(), PerfLogger.OPTIMIZER, "Calcite: Jdbc transformation rules");
+
+      // 12. Run rules to aid in translation from Calcite tree to Hive tree
       if (HiveConf.getBoolVar(conf, ConfVars.HIVE_CBO_RETPATH_HIVEOP)) {
         perfLogger.PerfLogBegin(this.getClass().getName(), PerfLogger.OPTIMIZER);
         // 11.1. Merge join into multijoin operators (if possible)

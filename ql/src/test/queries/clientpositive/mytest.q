@@ -1,5 +1,5 @@
 add jar /home/msydoron/jethro-jdbc-3.3-standalone.jar;
-CREATE EXTERNAL TABLE mytable2 (x2 INT, y2 DOUBLE)
+CREATE EXTERNAL TABLE ext_mytable (x INT, y DOUBLE)
 STORED BY
 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
 TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
@@ -10,8 +10,11 @@ TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
                 "hive.sql.dbcp.password" = "jethro", 
                 "hive.sql.query" = "select x,y from mytable",
                 "hive.sql.table" = "mytable",
-                "hive.sql.column.mapping" = "x2=x,y2=y",
+--                "hive.sql.column.mapping" = "x2=x,y2=y",
                 "hive.sql.dbcp.maxActive" = "1");
-select x2, count(*) from mytable2 where x2=10 group by x2;
-select sum(x2) from mytable2;
+select x, count(*) from ext_mytable where x=10 group by x;
+select x from ext_mytable where x=10;
+select x, count(*) from ext_mytable where x=10 group by x;
+
+select sum(x) from ext_mytable;
 

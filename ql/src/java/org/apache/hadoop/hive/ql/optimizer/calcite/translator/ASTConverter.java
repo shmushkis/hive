@@ -763,12 +763,12 @@ public class ASTConverter {
       }
     }
     
-    Schema(JdbcHiveTableScan hts) {
+    /*Schema(JdbcHiveTableScan hts) {
       String tabName = hts.jdbcTable.jdbcTableName;
       for (RelDataTypeField field : hts.getHiveTableScan().getRowType().getFieldList()) {
         add(new ColumnInfo(tabName, field.getName()));
       }
-    }
+    }*/
 
     Schema(Project select, String alias) {
       for (RelDataTypeField field : select.getRowType().getFieldList()) {

@@ -111,6 +111,7 @@ public class ASTBuilder {
     } else if (scan instanceof HiveJdbcConverter) {// TODOY 35:30
             HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;
             final String query = jdbcConverter.generateSql (JethrodataSqlDialect.DEFAULT);
+            final String query2 = jdbcConverter.generateSql (JethrodataSqlDialect.DEFAULT);
             logger.info("The HiveJdbcConverter generated sql message is: " + System.lineSeparator() + query);
             propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
                 .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
