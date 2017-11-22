@@ -227,7 +227,9 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveSubQueryRemoveRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionMergeRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionPullUpConstantsRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveWindowingFixRule;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyAggregationPushDownRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyFilterPushDown;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyProjectPushDownRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.views.HiveMaterializedViewRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTBuilder;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTConverter;
@@ -1636,15 +1638,23 @@ public class CalcitePlanner extends SemanticAnalyzer {
       perfLogger.PerfLogBegin(this.getClass().getName(), PerfLogger.OPTIMIZER);
       
 
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Original plan for Jdbc rules " +System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
+      }
       
       //final List<RelOptRule> jdbcRules = JdbcRules.rules(JdbcConvention.JETHRO_DEFAULT_CONVENTION);
       calciteOptimizedPlan = hepPlan(calciteOptimizedPlan, false, mdProvider.getMetadataProvider(), null,
               HepMatchOrder.BOTTOM_UP,
-              new MyFilterPushDown(),
+              new MyFilterPushDown(), /*new MyAggregationPushDownRule (), new MyProjectPushDownRule (),*/
               new JdbcFilterRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION, HiveRelNode.CONVENTION, HiveFilter.class)
               //new JdbcAggregateRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION),
               //jdbcRules.toArray(new RelOptRule [jdbcRules.size()])
       );
+      
+      
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Updated plan after Jdbc rules " + System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
+      }
       
       perfLogger.PerfLogEnd(this.getClass().getName(), PerfLogger.OPTIMIZER, "Calcite: Jdbc transformation rules");
 

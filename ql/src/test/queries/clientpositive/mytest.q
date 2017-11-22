@@ -12,9 +12,12 @@ TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
                 "hive.sql.table" = "mytable",
 --                "hive.sql.column.mapping" = "x2=x,y2=y",
                 "hive.sql.dbcp.maxActive" = "1");
-select x, count(*) from ext_mytable where x=10 group by x;
-select x from ext_mytable where x=10;
-select x, count(*) from ext_mytable where x=10 group by x;
+--select x, count(*) from ext_mytable where x=10 group by x;
+select x from ext_mytable where x*x!=100;
+
+select x, count(*) from ext_mytable where x!=10 group by x;
+
+select x, count(*) from ext_mytable where x==10 group by x;
 
 select sum(x) from ext_mytable;
 
