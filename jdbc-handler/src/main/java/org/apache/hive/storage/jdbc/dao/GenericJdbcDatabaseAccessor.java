@@ -90,6 +90,41 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
     }
 
   }
+  
+  @Override
+  public List<String> getColumnTypes(Configuration conf) throws HiveJdbcDatabaseAccessException {
+    Connection conn = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+
+    try {
+      initializeDatabaseConnection(conf);
+      String sql = JdbcStorageConfigManager.getQueryToExecute(conf);
+      String metadataQuery = addLimitToQuery(sql, 1);
+      LOGGER.debug("Query to execute is [{}]", metadataQuery);
+
+      conn = dbcpDataSource.getConnection();
+      ps = conn.prepareStatement(metadataQuery);
+      rs = ps.executeQuery();
+
+      ResultSetMetaData metadata = rs.getMetaData();
+      int numColumns = metadata.getColumnCount();
+      List<String> columnTypes = new ArrayList<String>(numColumns);
+      for (int i = 0; i < numColumns; i++) {
+        columnTypes.add(metadata.getColumnTypeName(i + 1));
+      }
+
+      return columnTypes;
+    }
+    catch (Exception e) {
+      LOGGER.error("Error while trying to get column names.", e);
+      throw new HiveJdbcDatabaseAccessException("Error while trying to get column names: " + e.getMessage(), e);
+    }
+    finally {
+      cleanupResources(conn, ps, rs);
+    }
+
+  }
 
 
   @Override

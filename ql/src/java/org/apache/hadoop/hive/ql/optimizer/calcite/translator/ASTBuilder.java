@@ -116,6 +116,10 @@ public class ASTBuilder {
             propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
                 .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
                 .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
+            
+            propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
+                .add(HiveParser.StringLiteral, "\"" + "YONI_ATTR" + "\"")
+                .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
     }
 
     if (hts.isInsideView()) {
@@ -133,12 +137,7 @@ public class ASTBuilder {
     // However in HIVE DB name can not appear in select list; in case of join
     // where table names differ only in DB name, Hive would require user
     // introducing explicit aliases for tbl.
-    String tableName = "";
-    if (scan instanceof HiveJdbcConverter) {
-      tableName = jdbcHiveTableScan.jdbcTable.jdbcTableName;//TODOY correct??
-    } else {
-      tableName = hts.getTableAlias();
-    }
+    String tableName = hts.getTableAlias();
     b.add(HiveParser.Identifier, tableName);
     return b.node();
   }

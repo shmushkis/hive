@@ -1645,8 +1645,7 @@ public class CalcitePlanner extends SemanticAnalyzer {
       //final List<RelOptRule> jdbcRules = JdbcRules.rules(JdbcConvention.JETHRO_DEFAULT_CONVENTION);
       calciteOptimizedPlan = hepPlan(calciteOptimizedPlan, false, mdProvider.getMetadataProvider(), null,
               HepMatchOrder.BOTTOM_UP,
-              new MyFilterPushDown(), /*new MyAggregationPushDownRule (), new MyProjectPushDownRule (),*/
-              new JdbcFilterRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION, HiveRelNode.CONVENTION, HiveFilter.class)
+              new MyFilterPushDown(), new MyProjectPushDownRule (), new MyAggregationPushDownRule ()
               //new JdbcAggregateRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION),
               //jdbcRules.toArray(new RelOptRule [jdbcRules.size()])
       );

@@ -30,36 +30,50 @@ TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
 POSTHOOK: type: CREATETABLE
 POSTHOOK: Output: database:default
 POSTHOOK: Output: default@ext_mytable
-PREHOOK: query: select x, count(*) from ext_mytable where x!=10 group by x
+PREHOOK: query: select x,y from ext_mytable where x=10
 PREHOOK: type: QUERY
 PREHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-POSTHOOK: query: select x, count(*) from ext_mytable where x!=10 group by x
+POSTHOOK: query: select x,y from ext_mytable where x=10
 POSTHOOK: type: QUERY
 POSTHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-20	1
-30	1
-PREHOOK: query: select x, count(*) from ext_mytable where x>10 group by x
+10	11.0
+20	12.0
+30	13.0
+PREHOOK: query: select x*x,y from ext_mytable where x=10
 PREHOOK: type: QUERY
 PREHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-POSTHOOK: query: select x, count(*) from ext_mytable where x>10 group by x
+POSTHOOK: query: select x*x,y from ext_mytable where x=10
 POSTHOOK: type: QUERY
 POSTHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-20	1
-30	1
-PREHOOK: query: select x, count(*) from ext_mytable where x!=10 group by x
+10	11.0
+20	12.0
+30	13.0
+PREHOOK: query: select x,y*y from ext_mytable where x*x!=100
 PREHOOK: type: QUERY
 PREHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-POSTHOOK: query: select x, count(*) from ext_mytable where x!=10 group by x
+POSTHOOK: query: select x,y*y from ext_mytable where x*x!=100
 POSTHOOK: type: QUERY
 POSTHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-20	1
-30	1
+10	11.0
+20	12.0
+30	13.0
+PREHOOK: query: select x, count(x) from ext_mytable where x!=10 group by x
+PREHOOK: type: QUERY
+PREHOOK: Input: default@ext_mytable
+#### A masked pattern was here ####
+POSTHOOK: query: select x, count(x) from ext_mytable where x!=10 group by x
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@ext_mytable
+#### A masked pattern was here ####
+10	11.0
+20	12.0
+30	13.0
 PREHOOK: query: select sum(x) from ext_mytable
 PREHOOK: type: QUERY
 PREHOOK: Input: default@ext_mytable
@@ -68,4 +82,6 @@ POSTHOOK: query: select sum(x) from ext_mytable
 POSTHOOK: type: QUERY
 POSTHOOK: Input: default@ext_mytable
 #### A masked pattern was here ####
-60
+10
+20
+30

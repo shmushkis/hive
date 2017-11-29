@@ -119,7 +119,12 @@ public class JdbcStorageConfigManager {
 
 
   public static String getQueryToExecute(Configuration config) {
-    String query = config.get(JdbcStorageConfig.QUERY.getPropertyName());
+    
+    String query = config.get("YONI_ATTR");
+    if (query != null) {
+      return query;
+    }
+    query = config.get(JdbcStorageConfig.QUERY.getPropertyName());
     String hiveFilterCondition = QueryConditionBuilder.getInstance().buildCondition(config);
     if ((hiveFilterCondition != null) && (!hiveFilterCondition.trim().isEmpty())) {
       query = query + " WHERE " + hiveFilterCondition;

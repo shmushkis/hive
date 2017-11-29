@@ -757,8 +757,8 @@ public class ASTConverter {
     Schema(HiveJdbcConverter scan) {
       HiveJdbcConverter jdbcHiveCoverter = (HiveJdbcConverter) (scan);
       final JdbcHiveTableScan jdbcTableScan = jdbcHiveCoverter.getTableScan(scan);
-      String tabName = jdbcTableScan.jdbcTable.jdbcTableName;
-      for (RelDataTypeField field : jdbcTableScan.getHiveTableScan().getRowType().getFieldList()) {
+      String tabName = jdbcTableScan.getHiveTableScan().getTableAlias();//TODOY ask Jesus
+      for (RelDataTypeField field : jdbcHiveCoverter.getRowType().getFieldList()) {
         add(new ColumnInfo(tabName, field.getName()));
       }
     }
