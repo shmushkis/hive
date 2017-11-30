@@ -64,8 +64,7 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
 
     try {
       initializeDatabaseConnection(conf);
-      String sql = JdbcStorageConfigManager.getQueryToExecute(conf);
-      String metadataQuery = addLimitToQuery(sql, 1);
+      String metadataQuery = getMetaDataQuery(conf);
       LOGGER.debug("Query to execute is [{}]", metadataQuery);
 
       conn = dbcpDataSource.getConnection();
@@ -90,6 +89,13 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
     }
 
   }
+
+
+  protected String getMetaDataQuery(Configuration conf) {
+    String sql = JdbcStorageConfigManager.getQueryToExecute(conf);
+    String metadataQuery = addLimitToQuery(sql, 1);
+    return metadataQuery;
+  }
   
   @Override
   public List<String> getColumnTypes(Configuration conf) throws HiveJdbcDatabaseAccessException {
@@ -99,8 +105,7 @@ public class GenericJdbcDatabaseAccessor implements DatabaseAccessor {
 
     try {
       initializeDatabaseConnection(conf);
-      String sql = JdbcStorageConfigManager.getQueryToExecute(conf);
-      String metadataQuery = addLimitToQuery(sql, 1);
+      String metadataQuery = getMetaDataQuery(conf);
       LOGGER.debug("Query to execute is [{}]", metadataQuery);
 
       conn = dbcpDataSource.getConnection();

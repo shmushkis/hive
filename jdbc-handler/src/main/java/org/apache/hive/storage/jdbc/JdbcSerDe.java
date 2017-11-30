@@ -73,7 +73,9 @@ public class JdbcSerDe extends AbstractSerDe {
         DatabaseAccessor dbAccessor = DatabaseAccessorFactory.getAccessor(tableConfig);
         columnNames = dbAccessor.getColumnNames(tableConfig);
         numColumns = columnNames.size();
+        List<String> hiveColumnNames;
         if (hive_query_execution) {
+          hiveColumnNames = columnNames;
           final List<String> columnTypes = dbAccessor.getColumnTypes(tableConfig);
           hiveColumnTypeArray = new String [columnTypes.size()];
           hiveColumnTypeArray = columnTypes.toArray (hiveColumnTypeArray);
@@ -90,7 +92,7 @@ public class JdbcSerDe extends AbstractSerDe {
             throw new SerDeException("Expected " + numColumns + " columns. Table definition has "
                 + hiveColumnNameArray.length + " columns");
           }
-        List<String> hiveColumnNames = Arrays.asList(hiveColumnNameArray);
+          hiveColumnNames = Arrays.asList(hiveColumnNameArray);
           
           hiveColumnTypeArray = parseProperty(tbl.getProperty(serdeConstants.LIST_COLUMN_TYPES), ":");
           if (hiveColumnTypeArray.length == 0) {
@@ -106,7 +108,7 @@ public class JdbcSerDe extends AbstractSerDe {
         }
 
         objectInspector =
-          ObjectInspectorFactory.getStandardStructObjectInspector(columnNames,
+          ObjectInspectorFactory.getStandardStructObjectInspector(hiveColumnNames,
               fieldInspectors);
         row = new ArrayList<Object>(numColumns);
       }

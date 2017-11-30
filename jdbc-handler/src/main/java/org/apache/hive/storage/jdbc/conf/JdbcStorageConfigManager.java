@@ -45,8 +45,8 @@ public class JdbcStorageConfigManager {
   private static final EnumSet<JdbcStorageConfig> DEFAULT_REQUIRED_PROPERTIES =
     EnumSet.of(JdbcStorageConfig.DATABASE_TYPE,
         JdbcStorageConfig.JDBC_URL,
-        JdbcStorageConfig.JDBC_DRIVER_CLASS,
-        JdbcStorageConfig.QUERY);
+        JdbcStorageConfig.JDBC_DRIVER_CLASS/*,
+        JdbcStorageConfig.QUERY*/);
 
   private static final EnumSet<JdbcStorageConfig> METASTORE_REQUIRED_PROPERTIES =
     EnumSet.of(JdbcStorageConfig.DATABASE_TYPE,
@@ -124,7 +124,15 @@ public class JdbcStorageConfigManager {
     if (query != null) {
       return query;
     }
+    
     query = config.get(JdbcStorageConfig.QUERY.getPropertyName());
+    
+    if (query == null) {
+      String tableName = config.get(JdbcStorageConfig.TABLE.getPropertyName());
+      query = "select * from " + tableName;
+    }
+    
+    
     String hiveFilterCondition = QueryConditionBuilder.getInstance().buildCondition(config);
     if ((hiveFilterCondition != null) && (!hiveFilterCondition.trim().isEmpty())) {
       query = query + " WHERE " + hiveFilterCondition;

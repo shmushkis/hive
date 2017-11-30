@@ -39,7 +39,7 @@ public class MyFilterPushDown extends RelOptRule {
         super (true);
       }
       
-      final Set<String> allowedJethroOperators = new HashSet<>(Arrays.asList("=", "<>","!=", "<",">", "sqrt","cast", "<>"));
+      final Set<String> allowedJethroOperators = new HashSet<>(Arrays.asList("=", "<>","!=", "<",">", "sqrt","cast", "<>", "+", "-", "*", "/"));
       boolean res = true;
       
       @Override
