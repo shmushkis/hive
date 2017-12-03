@@ -59,8 +59,6 @@ import org.apache.calcite.adapter.jdbc.JdbcConvention;
 import org.apache.calcite.adapter.jdbc.JdbcRules;
 import org.apache.calcite.adapter.jdbc.JdbcSchema;
 import org.apache.calcite.adapter.jdbc.JdbcTable;
-import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcFilterRule;
-import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcAggregateRule;
 import org.apache.calcite.config.CalciteConnectionConfig;
 import org.apache.calcite.config.CalciteConnectionConfigImpl;
 import org.apache.calcite.config.CalciteConnectionProperty;
@@ -68,7 +66,6 @@ import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptMaterialization;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptRule;
-import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelOptSchema;
 import org.apache.calcite.plan.RelOptUtil;
 import org.apache.calcite.plan.RelTraitSet;
@@ -229,7 +226,9 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionPullUpConstant
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveWindowingFixRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyAggregationPushDownRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyFilterPushDown;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyJoinPushDown;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyProjectPushDownRule;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MySortPushDownRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.views.HiveMaterializedViewRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTBuilder;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTConverter;
@@ -262,7 +261,6 @@ import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFEvaluator;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDAFEvaluator.Mode;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
 import org.apache.hadoop.hive.serde.serdeConstants;
-import org.apache.hadoop.hive.serde2.SerDeUtils;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
 import org.apache.hadoop.hive.serde2.objectinspector.StandardStructObjectInspector;
@@ -1639,20 +1637,19 @@ public class CalcitePlanner extends SemanticAnalyzer {
       
 
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Original plan for Jdbc rules " +System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
+        LOG.debug("JETHRO: Original plan for jdbc rules " +System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
       }
       
-      //final List<RelOptRule> jdbcRules = JdbcRules.rules(JdbcConvention.JETHRO_DEFAULT_CONVENTION);
       calciteOptimizedPlan = hepPlan(calciteOptimizedPlan, false, mdProvider.getMetadataProvider(), null,
               HepMatchOrder.BOTTOM_UP,
-              new MyFilterPushDown(), new MyProjectPushDownRule (), new MyAggregationPushDownRule ()
-              //new JdbcAggregateRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION),
-              //jdbcRules.toArray(new RelOptRule [jdbcRules.size()])
+              new MyFilterPushDown(), new MyProjectPushDownRule (), 
+              new MyAggregationPushDownRule (), new MySortPushDownRule (),
+              new MyJoinPushDown()
       );
       
       
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Updated plan after Jdbc rules " + System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
+        LOG.debug("JETHRO: Updated plan after jdbc rules " + System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
       }
       
       perfLogger.PerfLogEnd(this.getClass().getName(), PerfLogger.OPTIMIZER, "Calcite: Jdbc transformation rules");

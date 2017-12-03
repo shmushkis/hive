@@ -3,6 +3,7 @@ package org.apache.hadoop.hive.ql.optimizer.calcite.reloperators;
 import java.util.List;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
+import org.apache.calcite.adapter.jdbc.JdbcConvention;
 import org.apache.calcite.adapter.jdbc.JdbcImplementor;
 import org.apache.calcite.adapter.jdbc.JdbcRel;
 import org.apache.calcite.plan.ConventionTraitDef;
@@ -48,7 +49,7 @@ public class HiveJdbcConverter extends ConverterImpl implements HiveRelNode {
     return result.asStatement().toSqlString(dialect).getSql();
   }
   
-  public JdbcHiveTableScan getTableScan (final RelNode scan) {
+  public JdbcHiveTableScan getTableScan () {
     final  JdbcHiveTableScan []  tmpJdbcHiveTableScan = new JdbcHiveTableScan[1];
     new RelVisitor() {
       
@@ -62,12 +63,17 @@ public class HiveJdbcConverter extends ConverterImpl implements HiveRelNode {
           super.visit(node, ordinal, parent);
         }
       }
-    }.go(scan);
+    }.go(this);
     
     JdbcHiveTableScan jdbcHiveTableScan = tmpJdbcHiveTableScan [0];
     
     assert jdbcHiveTableScan != null;
     return jdbcHiveTableScan;
+  }
+  
+  
+  public JdbcConvention getUnderlyingConvention () {
+    return (JdbcConvention) getTableScan().getConvention ();
   }
 
 }

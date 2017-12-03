@@ -21,6 +21,13 @@ public class MyAggregationPushDownRule extends RelOptRule {
     super(operand(HiveAggregate.class,
         operand(HiveJdbcConverter.class, any())));
   }
+  
+  @Override
+  public boolean matches(RelOptRuleCall call) {
+    //final HiveAggregate agg = call.rel(0);
+    
+    return true;
+  }
 
   @Override
   public void onMatch(RelOptRuleCall call) {

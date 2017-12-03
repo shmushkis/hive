@@ -80,7 +80,7 @@ public class ASTBuilder {
     if (scan instanceof HiveJdbcConverter) {
       HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;
       //TODOY find the first jdbc using RelVisitor an extract the HiveTableScan out of it and assign hts
-      jdbcHiveTableScan = jdbcConverter.getTableScan(scan);
+      jdbcHiveTableScan = jdbcConverter.getTableScan();
       
       hts = jdbcHiveTableScan.getHiveTableScan();
     } else if (scan instanceof DruidQuery) {
@@ -112,7 +112,7 @@ public class ASTBuilder {
             HiveJdbcConverter jdbcConverter = (HiveJdbcConverter) scan;
             final String query = jdbcConverter.generateSql (JethrodataSqlDialect.DEFAULT);
             final String query2 = jdbcConverter.generateSql (JethrodataSqlDialect.DEFAULT);
-            logger.info("The HiveJdbcConverter generated sql message is: " + System.lineSeparator() + query);
+            logger.info("JETHRO: The HiveJdbcConverter generated sql message is: " + System.lineSeparator() + query);
             propList.add(ASTBuilder.construct(HiveParser.TOK_TABLEPROPERTY, "TOK_TABLEPROPERTY")
                 .add(HiveParser.StringLiteral, "\"" + Constants.JDBC_QUERY + "\"")
                 .add(HiveParser.StringLiteral, "\"" + SemanticAnalyzer.escapeSQLString(query) + "\""));
