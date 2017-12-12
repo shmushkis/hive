@@ -39,10 +39,11 @@ public class MyAggregationPushDownRule extends RelOptRule {
     
     Aggregate newHiveAggregate = agg.copy(agg.getTraitSet(), converter.getInput(),agg.getIndicatorCount() !=0,agg.getGroupSet(),agg.getGroupSets(),agg.getAggCallList());
     JdbcAggregate newJdbcAggregate = (JdbcAggregate) new JdbcAggregateRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION).convert(newHiveAggregate);
-    RelNode ConverterRes = converter.copy(converter.getTraitSet(), Arrays.asList(newJdbcAggregate));
-    
-    
-    call.transformTo(ConverterRes);
+    if (newJdbcAggregate != null) {
+      RelNode ConverterRes = converter.copy(converter.getTraitSet(), Arrays.asList(newJdbcAggregate));
+      
+      call.transformTo(ConverterRes);
+    }
   }
   
 };

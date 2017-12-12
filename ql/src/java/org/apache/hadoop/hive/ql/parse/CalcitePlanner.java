@@ -225,10 +225,13 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionMergeRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveUnionPullUpConstantsRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.HiveWindowingFixRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyAggregationPushDownRule;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyFilterJoinRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyFilterPushDown;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyJoinExtractFilterRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyJoinPushDown;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyProjectPushDownRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MySortPushDownRule;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MySplitFilter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.views.HiveMaterializedViewRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTBuilder;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTConverter;
@@ -1417,6 +1420,27 @@ public class CalcitePlanner extends SemanticAnalyzer {
       RelMetadataQuery.THREAD_PROVIDERS.set(
               JaninoRelMetadataProvider.of(mdProvider.getMetadataProvider()));
 
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("JETHRO: Original plan for jdbc rules phase 1" +System.lineSeparator()+ RelOptUtil.toString(calciteGenPlan));
+      }
+      
+      calciteGenPlan = hepPlan(calciteGenPlan, true, mdProvider.getMetadataProvider(), null,
+              HepMatchOrder.TOP_DOWN,
+              new MyJoinExtractFilterRule(),
+              new MySplitFilter (),
+              new MyFilterJoinRule (),
+              
+              new MyJoinPushDown(),
+              new MyFilterPushDown(), new MyProjectPushDownRule (), 
+              new MyAggregationPushDownRule (), new MySortPushDownRule ()
+              //,new HiveFilterJoinRule.FILTER_ON_JOIN
+      );
+      
+      
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("JETHRO: Updated plan after jdbc rules phase 1 " + System.lineSeparator()+ RelOptUtil.toString(calciteGenPlan));
+      }
+      
       //Remove subquery
       LOG.debug("Plan before removing subquery:\n" + RelOptUtil.toString(calciteGenPlan));
       calciteGenPlan = hepPlan(calciteGenPlan, false, mdProvider.getMetadataProvider(), null,
@@ -1640,12 +1664,14 @@ public class CalcitePlanner extends SemanticAnalyzer {
         LOG.debug("JETHRO: Original plan for jdbc rules " +System.lineSeparator()+ RelOptUtil.toString(calciteOptimizedPlan));
       }
       
-      calciteOptimizedPlan = hepPlan(calciteOptimizedPlan, false, mdProvider.getMetadataProvider(), null,
-              HepMatchOrder.BOTTOM_UP,
-              new MyFilterPushDown(), new MyProjectPushDownRule (), 
-              new MyAggregationPushDownRule (), new MySortPushDownRule (),
-              new MyJoinPushDown()
-      );
+      //calciteOptimizedPlan = hepPlan(calciteOptimizedPlan, false, mdProvider.getMetadataProvider(), null,
+      //        HepMatchOrder.BOTTOM_UP,
+      //        new MySplitFilter (),
+      //        
+      //        new MyFilterPushDown(), new MyProjectPushDownRule (), 
+      //        new MyAggregationPushDownRule (), new MySortPushDownRule (),
+      //        new MyJoinPushDown()
+      //);
       
       
       if (LOG.isDebugEnabled()) {

@@ -19,8 +19,8 @@ public class MyUnionPushDown extends RelOptRule {
   static Logger LOG = LoggerFactory.getLogger(MyUnionPushDown.class);
   public MyUnionPushDown() {
     super(operand(HiveUnion.class,
-        operand(HiveJdbcConverter.class, any()),
-        operand(HiveJdbcConverter.class, any())));
+            operand(HiveJdbcConverter.class, any()),
+            operand(HiveJdbcConverter.class, any())));
   }
   
   @Override
@@ -46,10 +46,11 @@ public class MyUnionPushDown extends RelOptRule {
     final List<RelNode> unionInput = Arrays.asList(converter1.getInput(), converter2.getInput());
     Union newHiveUnion = (Union) union.copy(union.getTraitSet(), unionInput, union.all);
     JdbcUnion newJdbcUnion = (JdbcUnion) new JdbcUnionRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION).convert(newHiveUnion);
-    RelNode ConverterRes = converter1.copy(converter1.getTraitSet(), Arrays.asList(newJdbcUnion));
-    
-    
-    call.transformTo(ConverterRes);
+    if (newJdbcUnion != null) {
+      RelNode ConverterRes = converter1.copy(converter1.getTraitSet(), Arrays.asList(newJdbcUnion));
+      
+      call.transformTo(ConverterRes);
+    }
   }
   
 };

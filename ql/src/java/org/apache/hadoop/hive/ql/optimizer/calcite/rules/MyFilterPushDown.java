@@ -24,17 +24,12 @@ public class MyFilterPushDown extends RelOptRule {
   
   @Override
   public boolean matches(RelOptRuleCall call) {
-    LOG.info("MyFilterPushDown has been called");
-    
     final HiveFilter filter = call.rel(0);
     //TODOY this is very naive imp, consult others!!!!!!
     
     RexNode cond = filter.getCondition ();
 
-    
-    boolean visitorRes = new MyRexVisitorImpl ().go(cond);
-    
-    return visitorRes;
+    return MyJdbcRexCallValidator.isValidJdbcOperation(cond);
   }
 
   @Override
@@ -47,10 +42,11 @@ public class MyFilterPushDown extends RelOptRule {
     
     Filter newHiveFilter = filter.copy(filter.getTraitSet(), converter.getInput(),filter.getCondition());
     JdbcFilter newJdbcFilter = (JdbcFilter) new JdbcFilterRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION).convert(newHiveFilter);
-    RelNode ConverterRes = converter.copy(converter.getTraitSet(), Arrays.asList(newJdbcFilter));
-    
-    
-    call.transformTo(ConverterRes);
+    if (newJdbcFilter != null) {
+      RelNode ConverterRes = converter.copy(converter.getTraitSet(), Arrays.asList(newJdbcFilter));
+      
+      call.transformTo(ConverterRes);
+    }
   }
   
 };

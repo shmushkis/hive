@@ -1,20 +1,15 @@
 package org.apache.hadoop.hive.ql.optimizer.calcite.rules;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import org.apache.calcite.adapter.jdbc.JdbcConvention;
-import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcFilter;
-import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcFilterRule;
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
-import org.apache.calcite.plan.RelOptRuleOperand;
-import org.apache.calcite.rel.RelNode;
-import org.apache.calcite.rel.core.Filter;
+import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexNode;
 import org.apache.calcite.sql.SqlKind;
+import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveFilter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.slf4j.Logger;
@@ -24,52 +19,93 @@ public class MySplitFilter extends RelOptRule {
   static Logger LOG = LoggerFactory.getLogger(MySplitFilter.class);
   
   public MySplitFilter() {
-    super(operand(HiveFilter.class,
-        operand(HiveJdbcConverter.class, any())));
+    super(operand(HiveFilter.class, any()));
+    //super(operand(HiveFilter.class,
+    //    operand(HiveJdbcConverter.class, any())));
+  }
+  
+  static private boolean splitSupportedOperators(List<RexNode> callexpOperends,
+      ArrayList<RexCall> validJdbcNode, ArrayList<RexCall> invalidJdbcNode) {
+    for (RexNode currOperand : callexpOperends) {
+      if ((currOperand instanceof RexCall) == false) {
+        return false;
+      }
+      RexCall currOperandCall = (RexCall) currOperand;
+      boolean isValidJdbcOp = MyJdbcRexCallValidator.isValidJdbcOperation(currOperandCall);
+      if (isValidJdbcOp) {
+        validJdbcNode.add(currOperandCall);
+      } else {
+        invalidJdbcNode.add(currOperandCall);
+      }
+    }
+    return invalidJdbcNode.isEmpty() == false && validJdbcNode.isEmpty() == false;
+  }
+  
+  static public boolean canSplitFilter(RexNode cond) {
+    if (cond.getKind() == SqlKind.AND) {
+      if (cond instanceof RexCall) {
+        RexCall callExpression = (RexCall) cond;
+        List<RexNode> callexpOperends = callExpression.getOperands();
+        ArrayList <RexCall> validJdbcNode = new ArrayList <RexCall> ();
+        ArrayList <RexCall> invalidJdbcNode = new ArrayList <RexCall> ();
+        return splitSupportedOperators(callexpOperends, validJdbcNode, invalidJdbcNode);
+      }
+    }
+    return false;
   }
   
   @Override
   public boolean matches(RelOptRuleCall call) {
-    LOG.info("MyFilterPushDown has been called");
+    LOG.info("MySplitFilter.matches has been called");
     
     final HiveFilter filter = call.rel(0);
     //TODOY this is very naive imp, consult others!!!!!!
     
     RexNode cond = filter.getCondition ();
 
-    if (cond.getKind() == SqlKind.AND) {
-      if (cond instanceof RexCall) {
-        RexCall callExpression = (RexCall) cond;
-        List<RexNode> operends = callExpression.getOperands();
-        ArrayList <RexCall> validJdbcNode = new ArrayList <RexCall> ();
-        ArrayList <RexCall> invalidJdbcNode = new ArrayList <RexCall> ();
-        for (RelOptRuleOperand currOperand : operands) {
-          //if (new MyRexVisitorImpl ().go(currOperand)) {
-          //  
-          //}
-        }
-      }
-    }
-    
-    boolean visitorRes = new MyRexVisitorImpl ().go(cond);
-    
-    return visitorRes;
+    return canSplitFilter(cond);
   }
+
+
+
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    LOG.info("MyFilterPushDown has been called");
+    LOG.info("MySplitFilter has been called");
     
-    final HiveFilter filter = call.rel(0);
-    final HiveJdbcConverter converter = call.rel(1);
+    final HiveFilter        filter = call.rel(0);
+    //final HiveJdbcConverter converter = call.rel(1);
     //TODOY this is very naive imp, consult others!!!!!!
+
+    RexCall callExpression = (RexCall) filter.getCondition ();
     
-    Filter newHiveFilter = filter.copy(filter.getTraitSet(), converter.getInput(),filter.getCondition());
-    JdbcFilter newJdbcFilter = (JdbcFilter) new JdbcFilterRule(JdbcConvention.JETHRO_DEFAULT_CONVENTION).convert(newHiveFilter);
-    RelNode ConverterRes = converter.copy(converter.getTraitSet(), Arrays.asList(newJdbcFilter));
+    List<RexNode> callexpOperends = callExpression.getOperands();
+    ArrayList <RexCall> validJdbcNode = new ArrayList <RexCall> ();
+    ArrayList <RexCall> invalidJdbcNode = new ArrayList <RexCall> ();
+    splitSupportedOperators(callexpOperends, validJdbcNode, invalidJdbcNode);
+    
+    final RexBuilder rexBuilder = filter.getCluster().getRexBuilder();
+    RexNode validCondition = null;
+    if (validJdbcNode.size() == 1) {
+      validCondition = validJdbcNode.get(0);
+    } else {
+      validCondition = rexBuilder.makeCall(SqlStdOperatorTable.AND, validJdbcNode);
+    }
     
     
-    call.transformTo(ConverterRes);
+    HiveFilter newJdbcValidFilter = new HiveFilter(filter.getCluster(), filter.getTraitSet(), filter.getInput(), validCondition);
+    
+    RexNode invalidCondition = null;
+    if (invalidJdbcNode.size() == 1) {
+      invalidCondition = invalidJdbcNode.get(0);
+    } else {
+      invalidCondition = rexBuilder.makeCall(SqlStdOperatorTable.AND, invalidJdbcNode);
+    }
+    
+    
+    HiveFilter newJdbcInalidFilter = new HiveFilter(filter.getCluster(), filter.getTraitSet(), newJdbcValidFilter, invalidCondition);
+    
+    call.transformTo(newJdbcInalidFilter);
   }
   
 };
