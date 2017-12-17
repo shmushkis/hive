@@ -26,7 +26,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.HiveRelFactories;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJoin;
 
-//TODOY Copied from JoinExtractFilterRule, need to refactor
+//Copied from JoinExtractFilterRule, need to refactor
 public final class MyJoinExtractFilterRule extends RelOptRule {
   //~ Static fields/initializers ---------------------------------------------
 
