@@ -17,6 +17,7 @@ import org.apache.calcite.tools.RelBuilderFactory;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveCalciteUtil;
 import org.apache.hadoop.hive.ql.optimizer.calcite.HiveRelFactories;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveFilter;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJoin;
 
 /**
@@ -25,7 +26,10 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJoin;
  */
 public class MyFilterJoinRule extends HiveFilterJoinRule {
   public MyFilterJoinRule() {
-    super(RelOptRule.operand(HiveFilter.class, RelOptRule.operand(HiveJoin.class, RelOptRule.any())),
+    super(RelOptRule.operand(HiveFilter.class, 
+            RelOptRule.operand(HiveJoin.class, 
+                RelOptRule.operand(HiveJdbcConverter.class, RelOptRule.any()),
+                RelOptRule.operand(HiveJdbcConverter.class, RelOptRule.any()))),
         "MyFilterJoinRule", true, HiveRelFactories.HIVE_BUILDER);
   }
 

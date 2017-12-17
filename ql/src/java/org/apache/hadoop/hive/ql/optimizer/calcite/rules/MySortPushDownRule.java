@@ -1,6 +1,7 @@
 package org.apache.hadoop.hive.ql.optimizer.calcite.rules;
 
 import java.util.Arrays;
+import java.util.Iterator;
 
 import org.apache.calcite.adapter.jdbc.JdbcConvention;
 import org.apache.calcite.adapter.jdbc.JdbcRules.JdbcSort;
@@ -9,6 +10,7 @@ import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.plan.RelTraitSet;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Sort;
+import org.apache.calcite.rex.RexNode;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveSortLimit;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.slf4j.Logger;
@@ -20,6 +22,19 @@ public class MySortPushDownRule extends RelOptRule {
   public MySortPushDownRule() {
     super(operand(HiveSortLimit.class,
         operand(HiveJdbcConverter.class, operand(RelNode.class, any()))));
+  }
+  
+  public boolean matches(RelOptRuleCall call) {
+    final Sort sort = (Sort) call.rel(0);
+    
+    
+    for (RexNode curr_call : sort.getChildExps()) {
+      if (MyJdbcRexCallValidator.isValidJdbcOperation(curr_call) == false) {
+        return false;
+      }
+    }
+    
+    return true;
   }
   
   private JdbcSort convert(RelNode rel, JdbcConvention out) {

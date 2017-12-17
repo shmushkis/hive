@@ -26,20 +26,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.HiveRelFactories;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJoin;
 
-/**
- * Rule to convert an
- * {@link org.apache.calcite.rel.logical.LogicalJoin inner join} to a
- * {@link org.apache.calcite.rel.logical.LogicalFilter filter} on top of a
- * {@link org.apache.calcite.rel.logical.LogicalJoin cartesian inner join}.
- *
- * <p>One benefit of this transformation is that after it, the join condition
- * can be combined with conditions and expressions above the join. It also makes
- * the <code>FennelCartesianJoinRule</code> applicable.
- *
- * <p>The constructor is parameterized to allow any sub-class of
- * {@link org.apache.calcite.rel.core.Join}, not just
- * {@link org.apache.calcite.rel.logical.LogicalJoin}.</p>
- */
+//TODOY Copied from JoinExtractFilterRule, need to refactor
 public final class MyJoinExtractFilterRule extends RelOptRule {
   //~ Static fields/initializers ---------------------------------------------
 
@@ -58,7 +45,7 @@ public final class MyJoinExtractFilterRule extends RelOptRule {
   @Override
   public boolean matches(RelOptRuleCall call) {
     final Join join = call.rel(0);
-    return MySplitFilter.canSplitFilter(join.getCondition());
+    return MyAbstractSplitFilter.canSplitFilter(join.getCondition());
   }
 
   //~ Methods ----------------------------------------------------------------

@@ -22,12 +22,25 @@ public class MyProjectPushDownRule extends RelOptRule {
     super(operand(HiveProject.class,
         operand(HiveJdbcConverter.class, any())));
   }
+  
+  @Override
+  public boolean matches(RelOptRuleCall call) {
+    final HiveProject project = call.rel(0);
+    for (RexNode curr_project : project.getProjects()) {
+        if (MyJdbcRexCallValidator.isValidJdbcOperation(curr_project) == false) {
+          return false;
+        }
+    }
+
+    return true;
+  }
 
   @Override
   public void onMatch(RelOptRuleCall call) {
     LOG.info("MyProjectPushDownRule has been called");
     
     final HiveProject project = call.rel(0);
+    project.getProjects();
     final HiveJdbcConverter converter = call.rel(1);
     //List<RexNode> projects = project.getProjects();
     //TODOY this is very naive imp, consult others!!!!!!

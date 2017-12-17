@@ -9,6 +9,10 @@ import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
 import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.core.Aggregate;
+import org.apache.calcite.rel.core.AggregateCall;
+import org.apache.calcite.sql.SqlAggFunction;
+import org.apache.calcite.sql.SqlIdentifier;
+import org.apache.calcite.sql.SqlKind;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveAggregate;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
 import org.slf4j.Logger;
@@ -19,13 +23,29 @@ public class MyAggregationPushDownRule extends RelOptRule {
   
   public MyAggregationPushDownRule() {
     super(operand(HiveAggregate.class,
-        operand(HiveJdbcConverter.class, any())));
+            operand(HiveJdbcConverter.class, any())));
   }
   
   @Override
   public boolean matches(RelOptRuleCall call) {
-    //final HiveAggregate agg = call.rel(0);
-    
+    final HiveAggregate agg = call.rel(0);
+    for (AggregateCall relOptRuleOperand : agg.getAggCallList()) {
+      SqlAggFunction f = relOptRuleOperand.getAggregation();
+      SqlKind identifier = f.getKind();
+      switch (identifier) {
+      case SUM:
+      case AVG:
+      case COUNT:
+      case MIN:
+      case MAX:
+        
+        break;
+
+      default:
+        return false;
+      }
+      
+    };
     return true;
   }
 

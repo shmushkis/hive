@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.calcite.plan.RelOptRule;
 import org.apache.calcite.plan.RelOptRuleCall;
+import org.apache.calcite.plan.RelOptRuleOperand;
 import org.apache.calcite.rex.RexBuilder;
 import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexNode;
@@ -12,17 +13,20 @@ import org.apache.calcite.sql.SqlKind;
 import org.apache.calcite.sql.fun.SqlStdOperatorTable;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveFilter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJdbcConverter;
+import org.apache.hadoop.hive.ql.optimizer.calcite.reloperators.HiveJoin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MySplitFilter extends RelOptRule {
-  static Logger LOG = LoggerFactory.getLogger(MySplitFilter.class);
+public abstract class MyAbstractSplitFilter extends RelOptRule {
+  static Logger LOG = LoggerFactory.getLogger(MyAbstractSplitFilter.class);
   
-  public MySplitFilter() {
-    super(operand(HiveFilter.class, any()));
-    //super(operand(HiveFilter.class,
-    //    operand(HiveJdbcConverter.class, any())));
+  static public MyAbstractSplitFilter SPLIT_FILTER_ABOVE_JOIN = new MyUpperJoinFilterFilter ();
+  static public MyAbstractSplitFilter SPLIT_FILTER_ABOVE_CONVERTER = new MySplitFilter ();
+  
+  protected MyAbstractSplitFilter (RelOptRuleOperand operand) {
+    super (operand);
   }
+
   
   static private boolean splitSupportedOperators(List<RexNode> callexpOperends,
       ArrayList<RexCall> validJdbcNode, ArrayList<RexCall> invalidJdbcNode) {
@@ -67,11 +71,9 @@ public class MySplitFilter extends RelOptRule {
   }
 
 
-
-
   @Override
   public void onMatch(RelOptRuleCall call) {
-    LOG.info("MySplitFilter has been called");
+    LOG.debug("MySplitFilter.onMatch has been called");
     
     final HiveFilter        filter = call.rel(0);
     //final HiveJdbcConverter converter = call.rel(1);
@@ -106,6 +108,36 @@ public class MySplitFilter extends RelOptRule {
     HiveFilter newJdbcInalidFilter = new HiveFilter(filter.getCluster(), filter.getTraitSet(), newJdbcValidFilter, invalidCondition);
     
     call.transformTo(newJdbcInalidFilter);
+  }
+  
+  
+  public static class MyUpperJoinFilterFilter extends MyAbstractSplitFilter {
+    public MyUpperJoinFilterFilter() {
+      //super(operand(HiveFilter.class, any()));
+      super(operand(HiveFilter.class,
+              operand(HiveJoin.class, 
+                  operand(HiveJdbcConverter.class, any()))));
+    }
+    
+    @Override
+    public boolean matches(RelOptRuleCall call) {
+      LOG.info("MyUpperJoinFilterFilter.matches has been called");
+      
+      final HiveJoin join = call.rel(1);
+      //TODOY this is very naive imp, consult others!!!!!!
+      
+      RexNode joinCond = join.getCondition ();
+
+      return super.matches(call) && MyJdbcRexCallValidator.isValidJdbcOperation(joinCond);
+    }
+  }
+  
+  public static class MySplitFilter extends MyAbstractSplitFilter {
+    public MySplitFilter() {
+      //super(operand(HiveFilter.class, any()));
+      super(operand(HiveFilter.class,
+              operand(HiveJdbcConverter.class, any())));
+    }
   }
   
 };

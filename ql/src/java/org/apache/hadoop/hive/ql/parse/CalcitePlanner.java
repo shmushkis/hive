@@ -231,7 +231,7 @@ import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyJoinExtractFilterRule
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyJoinPushDown;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyProjectPushDownRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MySortPushDownRule;
-import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MySplitFilter;
+import org.apache.hadoop.hive.ql.optimizer.calcite.rules.MyAbstractSplitFilter;
 import org.apache.hadoop.hive.ql.optimizer.calcite.rules.views.HiveMaterializedViewRule;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTBuilder;
 import org.apache.hadoop.hive.ql.optimizer.calcite.translator.ASTConverter;
@@ -1427,7 +1427,7 @@ public class CalcitePlanner extends SemanticAnalyzer {
       calciteGenPlan = hepPlan(calciteGenPlan, true, mdProvider.getMetadataProvider(), null,
               HepMatchOrder.TOP_DOWN,
               new MyJoinExtractFilterRule(),
-              new MySplitFilter (),
+              MyAbstractSplitFilter.SPLIT_FILTER_ABOVE_JOIN, MyAbstractSplitFilter.SPLIT_FILTER_ABOVE_CONVERTER,
               new MyFilterJoinRule (),
               
               new MyJoinPushDown(),
