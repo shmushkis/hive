@@ -1,4 +1,4 @@
-add jar /home/msydoron/jethro-jdbc-3.3-standalone.jar;
+add jar /home/msydoron/eclipse-workspace/JethroDataJDBCDriver/target/jethro-jdbc-3.6-standalone.jar;
 CREATE EXTERNAL TABLE ext_mytable1 (x1 INT, y1 DOUBLE)
 STORED BY
 'org.apache.hive.storage.jdbc.JdbcStorageHandler'
@@ -24,13 +24,35 @@ TBLPROPERTIES ( "hive.sql.database.type" = "JETHRO",
 
 SELECT ext_mytable1.x1, ext_mytable1.y1, ext_mytable2.x2
 FROM ext_mytable1
-INNER JOIN ext_mytable2 ON ext_mytable1.x1=ext_mytable2.x2;
+JOIN ext_mytable2 ON ext_mytable1.x1=ext_mytable2.x2 where (sqrt(x1*y1)   = sqrt(x2*y2) and bround (x1) != sqrt (y1)) and 
+														   sqrt(x1*x2)   = sqrt(y1*y2) and
+ 													       bround(x1*y1) = bround(x2*y2);
+ 													       
+ 													       
+SELECT x1, sum(y1*8.0) FROM ext_mytable1 group by x1 order by sum(y1*8);
+
+--SELECT x1 FROM ext_mytable1 order by sum(x1);
+
+--SELECT abs (ext_mytable1.x1), ext_mytable1.y1 FROM ext_mytable1 where bround (x1) +1 = 8;
+
+SELECT count (ext_mytable1.x1) FROM ext_mytable1;
+
+
 
 SELECT ext_mytable1.x1, ext_mytable1.y1, ext_mytable2.x2
 FROM ext_mytable1
-JOIN ext_mytable2 ON ext_mytable1.x1=ext_mytable2.x2 where sqrt(x1*y1)   = sqrt(x2*y2) and 
-														   sqrt(x1*x2)   = sqrt(y1*y2) and
- 													       bround(x1*y1) = bround(x2*y2);
+JOIN ext_mytable2 ON ext_mytable1.x1=ext_mytable2.x2 and sqrt(x1*y1)   = sqrt(x2*y2) and 
+														 sqrt(x1*x2)   = sqrt(y1*y2) and
+ 													     bround(x1*y1) = bround(x2*y2);
+ 													       
+
+ 													       
+select y1,x1,sqrt(x1) from ext_mytable1 where bround(x1) + 1 = sqrt(y1) and x1*y1 = sqrt(y1*x1*y1) and x1+y1 = y1-x1; 
+
+SELECT ext_mytable1.x1, ext_mytable1.y1, ext_mytable2.x2
+FROM ext_mytable1
+INNER JOIN ext_mytable2 ON ext_mytable1.x1=ext_mytable2.x2 and ext_mytable1.y1=ext_mytable2.y2 and ext_mytable1.x1=10;
+
 
 
                 
