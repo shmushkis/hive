@@ -51,7 +51,7 @@ public class MyAggregationPushDownRule extends RelOptRule {
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    LOG.info("MyAggregationPushDownRule has been called");
+    LOG.debug("MyAggregationPushDownRule has been called");
     
     final HiveAggregate agg = call.rel(0);
     final HiveJdbcConverter converter = call.rel(1);

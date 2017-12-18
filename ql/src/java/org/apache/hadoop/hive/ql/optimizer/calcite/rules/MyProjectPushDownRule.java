@@ -37,7 +37,7 @@ public class MyProjectPushDownRule extends RelOptRule {
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    LOG.info("MyProjectPushDownRule has been called");
+    LOG.debug("MyProjectPushDownRule has been called");
     
     final HiveProject project = call.rel(0);
     project.getProjects();

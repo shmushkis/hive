@@ -120,10 +120,10 @@ public class JdbcStorageConfigManager {
 
   public static String getQueryToExecute(Configuration config) {
     
-    String query = config.get("YONI_ATTR");
+    String query;/* = config.get("YONI_ATTR");
     if (query != null) {
       return query;
-    }
+    }*/
     
     query = config.get(JdbcStorageConfig.QUERY.getPropertyName());
     

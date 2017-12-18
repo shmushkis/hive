@@ -80,7 +80,7 @@ public class JdbcSerDe extends AbstractSerDe {
           hiveColumnTypeArray = new String [columnTypes.size()];
           hiveColumnTypeArray = columnTypes.toArray (hiveColumnTypeArray);
           for (int i = 0; i < hiveColumnTypeArray.length; i++) {
-            if (hiveColumnTypeArray [i].toLowerCase().equals("integer")) {
+            if (hiveColumnTypeArray [i].equalsIgnoreCase("integer")) {
               hiveColumnTypeArray [i] = "int";
             }
             hiveColumnTypeArray [i] = hiveColumnTypeArray [i].toLowerCase();

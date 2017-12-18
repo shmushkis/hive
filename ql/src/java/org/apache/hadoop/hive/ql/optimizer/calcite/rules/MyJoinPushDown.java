@@ -67,7 +67,7 @@ public class MyJoinPushDown extends RelOptRule {
 
   @Override
   public void onMatch(RelOptRuleCall call) {
-    LOG.info("MyJoinPushDown has been called");
+    LOG.debug("MyJoinPushDown has been called");
     
     final HiveJoin join = call.rel(0);
     final HiveJdbcConverter converter1 = call.rel(1);
